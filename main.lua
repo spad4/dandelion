@@ -2,27 +2,35 @@ local dand = require("dandelion")
 
 function _config()
   ---@type Usagi.Config
-  return { name = "Game", game_id = "com.usagiengine.YOURGAMENAME" }
+  return { name = "Dandelion Field" }
 end
 
 function _init()
   -- Live reload preserves globals across saved edits but resets locals.
   -- Stash mutable game state in a capitalized global like `State` so it
   -- survives reloads; F5 calls _init again to reset.
-  State = {}
+  State = {
+    emitter_index = 1
+  }
 end
 
 local counter = 1
+local emitters = dand.Emitters()
 
 function _update(dt)
+
+  if input.key_pressed(input.KEY_SPACE) then
+    State.emitter_index = (State.emitter_index % #emitters) + 1
+  end
+
   if input.mouse_pressed(input.MOUSE_LEFT) then
-    dand.line(input.mouse())
+    dand[emitters[State.emitter_index]](input.mouse())
   end
 
   if input.mouse_held(input.MOUSE_RIGHT) then
     counter += 1
     if counter > 1 then
-      dand.line(input.mouse())
+      dand[emitters[State.emitter_index]](input.mouse())
       counter = 0
     end
   end
@@ -32,8 +40,20 @@ function _update(dt)
   end
 end
 
+function outlined_text(text, x, y, color, outline)
+
+  for i = -1, 1, 1 do
+    for j = -1, 1, 1 do
+      gfx.text(text, x+i, y+j, outline)
+    end
+  end
+  gfx.text(text, x, y, color)
+end
+
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  dand:Draw()
-  dand:Debug()
+  dand.Draw()
+  dand.Debug()
+  outlined_text("SELECTED: " .. emitters[State.emitter_index], 4, usagi.GAME_H - 12, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+  outlined_text("FPS: " .. string.format("%.1f", 1 / dt), 4, 0, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 end

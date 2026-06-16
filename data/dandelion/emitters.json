@@ -1,21 +1,86 @@
 [
     {
-        "name": "test",
-        "duration": 2,
+        "name": "laser_emitter",
+        "duration": 4,
         "particles": [
             {
-                "name": "bit",
-                "count": 10,
-                "frequency": 0.01,
+                "name": "laser_center",
+                "count": 1,
+                "frequency": 99999
+            },
+            {
+                "name": "laser_line",
+                "count": 1,
+                "frequency": 99999
+            },
+            {
+                "name": "laser_circle",
+                "count": 25,
+                "frequency": 0.1,
                 "shape": "line",
                 "config": {
                     "length": 400,
-                    "thickness": 32,
-                    "centered": true,
+                    "thickness": 4,
                     "motion": 128,
-                    "direction": "self.age * 0.25",
-                    "rotation": "self.age * 0.25"
+                    "direction": 0.75,
+                    "rotation": "self.age * 0.125"
                 }
+            },
+            {
+                "name": "laser_triangle",
+                "count": 25,
+                "frequency": 0.1,
+                "shape": "line",
+                "config": {
+                    "length": 400,
+                    "thickness": 4,
+                    "motion": 128,
+                    "direction": 0.75,
+                    "rotation": "self.age * 0.125"
+                }
+            }
+        ]
+    },
+    {
+        "name": "fire_emitter",
+        "duration": 4,
+        "particles": [
+            {
+                "name": "flame",
+                "count": 3,
+                "frequency": 0.25,
+                "shape": "rectangle",
+                "config": {
+                    "width": 16,
+                    "height": 16
+                }
+            },
+            {
+                "name": "small_smoke",
+                "count": 1,
+                "frequency": 0.25,
+                "shape": "rectangle",
+                "config": {
+                    "width": 16,
+                    "height": 16
+                }
+            }
+        ]
+    },
+    {
+        "name": "burst_emitter",
+        "duration": 2,
+        "particles": [
+            {
+                "name": "burst_line",
+                "count": 15,
+                "frequency": 5
+            },
+            {
+                "name": "burst_circle",
+                "count": 1,
+                "frequency": 5,
+                "delay": 1.2
             }
         ]
     }

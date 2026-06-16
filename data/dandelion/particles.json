@@ -42,5 +42,85 @@
             "centered": true,
             "rotation": "self.age"
         }
+    },
+    {
+        "name": "laser_line",
+        "duration": 4,
+        "type": "line",
+        "color": "'COLOR_RED'",
+        "config": {
+            "thickness": 32,
+            "length": 400,
+            "rotation": "self.age * 0.125"
+        }
+    },
+    {
+        "name": "laser_center",
+        "duration": 4,
+        "type": "circle",
+        "color": "'COLOR_RED'",
+        "config": {
+            "radius": 16
+        }
+    },
+    {
+        "name": "laser_triangle",
+        "duration": 0.4,
+        "type": "triangle",
+        "color": "'COLOR_RED'",
+        "config": {
+            "size": "(9 + self.random_2 * 9) * (1 - self.age / self.duration)",
+            "rotation": "self.age * 4 - (self.random_1 * 4)"
+        }
+    },
+    {
+        "name": "laser_circle",
+        "duration": 0.6,
+        "type": "circle",
+        "color": "'COLOR_RED'",
+        "config": {
+            "radius": "(3 + self.random_2 * 6) * (1 - self.age / self.duration)",
+            "rotation": "self.age * 4 - (self.random_1 * 4)"
+        }
+    },
+    {
+        "name": "flame",
+        "duration": 0.6,
+        "type": "triangle",
+        "color": "self.age > 0.25 and 'COLOR_RED' or self.age > 0.1 and 'COLOR_ORANGE' or 'COLOR_YELLOW'",
+        "dx": "self.age * -1 * (self.random_1 * 4 + 2)",
+        "dy": "self.age * -10",
+        "config": {
+            "size": "(self.random_2 * 2 + 3) * (1 - self.age / self.duration + 0.5)",
+            "rotation": "self.age * 4 - (self.random_1 * 4)"
+        }
+    },
+    {
+        "name": "small_smoke",
+        "duration": 1.5,
+        "color": "self.random_1 > 0.5 and 'COLOR_DARK_GRAY' or 'COLOR_BLACK'",
+        "dx": "self.age * -1 * (self.random_1 * 4 + 2)",
+        "dy": "self.age * -10",
+        "type": "circle",
+        "config": {
+            "radius": "(self.random_1 + 2) * (1 - self.age / self.duration)"
+        }
+    },
+    {
+        "name": "burst_line",
+        "duration": 1.5,
+        "type": "line",
+        "config": {
+            "length": "(self.random_2 * 200 + 100) * (1 - (self.age ^ 2) / self.duration)",
+            "rotation": "self.random_1 * 2"
+        }
+    },
+    {
+        "name": "burst_circle",
+        "duration": 3,
+        "type": "circle",
+        "config": {
+            "radius": "500 * self.age"
+        }
     }
 ]

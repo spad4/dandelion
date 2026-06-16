@@ -3,15 +3,20 @@ local dandelion = {}
 local load_particles = usagi.read_json("dandelion/particles.json")
 local load_emitters = usagi.read_json("dandelion/emitters.json")
 
+local particle_names = {}
+local emitter_names = {}
+
 -- runtime cache of particles and emitters
 local particle_cache = {}
 local emitter_cache = {}
+
 
 -- register all particle types and constructor functions
 for _, particle in pairs(load_particles) do
     -- no duplicates, first come first serve for names
     if dandelion[string.lower(particle.name)] then goto continue end
 
+    table.insert(particle_names, particle.name)
     dandelion[string.lower(particle.name)] = function(x, y, vars)
         local new_particle = {
             x = x,
@@ -25,7 +30,6 @@ for _, particle in pairs(load_particles) do
             new_particle[k] = v
         end
 
-        -- unused for now
         if vars then
             for k, v in pairs(vars) do
                 -- these properties are immutable
@@ -51,6 +55,7 @@ for _, emitter in pairs(load_emitters) do
     -- no duplicates, first come first serve for names
     if dandelion[string.lower(emitter.name)] then goto continue end
 
+    table.insert(emitter_names, emitter.name)
     dandelion[string.lower(emitter.name)] = function(x, y, vars)
         local new_emitter = {
             x = x,
@@ -269,12 +274,15 @@ local function line_emitter(emitter, config)
     -- local y_motion = math.sin((0.5 * math.pi) + rotation * math.pi) * thickness * side * 0.5
     local x_velocity = nil
     local y_velocity = nil
+    local rand = math.random()
     if velocity ~= 0 then
+        if side == -1 then
+            direction = 1 - direction
+        end
         x_velocity = "self.age * " .. math.cos((rotation + direction) * math.pi) * velocity * side
         y_velocity = "self.age * " .. math.sin((rotation + direction) * math.pi) * velocity * side
     end
 
-    local rand = math.random()
     local center = config.centered and 0.5 or 0
 
     x *= rand - center
@@ -363,7 +371,7 @@ end
 local removed = 0
 local prev_removed = 0
 
-function dandelion:Draw()
+function dandelion.Draw()
     removed = 0
     for i = #emitter_cache, 1, -1 do
         local emitter = emitter_cache[i]
@@ -386,27 +394,19 @@ function dandelion:Draw()
     end
 end
 
-function dandelion:Debug()
-    -- gfx.text("EMITTERS: " .. #emitter_cache, 5, 13, gfx.COLOR_BLACK)
-    -- gfx.text("EMITTERS: " .. #emitter_cache, 4, 13, gfx.COLOR_BLACK)
-    -- gfx.text("EMITTERS: " .. #emitter_cache, 3, 13, gfx.COLOR_BLACK)
-    -- gfx.text("EMITTERS: " .. #emitter_cache, 3, 12, gfx.COLOR_BLACK)
-    -- gfx.text("EMITTERS: " .. #emitter_cache, 3, 11, gfx.COLOR_BLACK)
-    -- gfx.text("EMITTERS: " .. #emitter_cache, 4, 11, gfx.COLOR_BLACK)
-    -- gfx.text("EMITTERS: " .. #emitter_cache, 5, 11, gfx.COLOR_BLACK)
-    -- gfx.text("EMITTERS: " .. #emitter_cache, 5, 12, gfx.COLOR_BLACK)
-    gfx.text("EMITTERS: " .. #emitter_cache, 4, 12, gfx.COLOR_TRUE_WHITE)
-    -- gfx.text("PARTICLES: " .. #particle_cache, 5, 25, gfx.COLOR_BLACK)
-    -- gfx.text("PARTICLES: " .. #particle_cache, 4, 25, gfx.COLOR_BLACK)
-    -- gfx.text("PARTICLES: " .. #particle_cache, 3, 25, gfx.COLOR_BLACK)
-    -- gfx.text("PARTICLES: " .. #particle_cache, 3, 24, gfx.COLOR_BLACK)
-    -- gfx.text("PARTICLES: " .. #particle_cache, 3, 23, gfx.COLOR_BLACK)
-    -- gfx.text("PARTICLES: " .. #particle_cache, 4, 23, gfx.COLOR_BLACK)
-    -- gfx.text("PARTICLES: " .. #particle_cache, 5, 23, gfx.COLOR_BLACK)
-    -- gfx.text("PARTICLES: " .. #particle_cache, 5, 24, gfx.COLOR_BLACK)
-    gfx.text("PARTICLES: " .. #particle_cache, 4, 24, gfx.COLOR_TRUE_WHITE)
+function dandelion.Particles()
+    return particle_names
+end
+
+function dandelion.Emitters()
+    return emitter_names
+end
+
+function dandelion.Debug()
+    outlined_text("EMITTERS: " .. #emitter_cache, 4, 12, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("PARTICLES: " .. #particle_cache, 4, 24, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
     prev_removed = removed == 0 and prev_removed or removed
-    gfx.text("REMOVED: " .. prev_removed, 4, 36, gfx.COLOR_TRUE_WHITE)
+    outlined_text("REMOVED: " .. prev_removed, 4, 36, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 end
 
 return dandelion
