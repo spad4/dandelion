@@ -16,13 +16,13 @@ local counter = 1
 
 function _update(dt)
   if input.mouse_pressed(input.MOUSE_LEFT) then
-    dand.test(input.mouse())
+    dand.line(input.mouse())
   end
 
   if input.mouse_held(input.MOUSE_RIGHT) then
     counter += 1
     if counter > 1 then
-      dand.test(input.mouse())
+      dand.line(input.mouse())
       counter = 0
     end
   end

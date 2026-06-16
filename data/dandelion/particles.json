@@ -1,9 +1,46 @@
 [
     {
-        "name": "bit",
-        "duration": 0.25,
+        "name": "text",
+        "duration": 1,
         "type": "text",
-        "shadow": false,
-        "alpha": "1 - self.age / self.duration"
+        "color": "'COLOR_GREEN'",
+        "config": {
+            "text": "'TEXT'",
+            "shadow": "'COLOR_DARK_GREEN'",
+            "alpha": "1 - self.age / self.duration"
+        }
+    },
+    {
+        "name": "circle",
+        "duration": 1,
+        "type": "circle",
+        "color": "'COLOR_GREEN'",
+        "config": {
+            "radius": 10,
+            "outline": 5
+        }
+    },
+    {
+        "name": "triangle",
+        "duration": 1,
+        "type": "triangle",
+        "color": "'COLOR_GREEN'",
+        "config": {
+            "size": 10,
+            "rotation": "self.age",
+            "hollow": true
+        }
+    },
+    {
+        "name": "line",
+        "duration": 1,
+        "type": "line",
+        "color": "'COLOR_GREEN'",
+        "config": {
+            "thickness": 2,
+            "length": "64 * (1 - self.age / self.duration)",
+            "centered": true,
+            "rotation": "self.age"
+        }
     }
 ]

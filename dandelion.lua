@@ -139,14 +139,74 @@ local function compute_emitter_expression(emitter, expression)
 end
 
 local function draw_particle(particle)
+    if not particle.type or not particle.config then return end
+
     local dx = compute_particle_expression(particle, particle.dx or 0)
     local dy = compute_particle_expression(particle, particle.dy or 0)
+    local color = gfx[compute_particle_expression(particle, particle.color or "'COLOR_TRUE_WHITE'")]
+    local config = particle.config
 
     if particle.type == "text" then
-        local color = gfx[compute_particle_expression(particle, particle.color or "'COLOR_TRUE_WHITE'")]
-        local text = compute_particle_expression(particle, particle.text or "'.'") -- MUST BE OPTIMIZED BEFORE RELEASE
-        local alpha = compute_particle_expression(particle, particle.alpha or 1)
-        gfx.text_ex(text, particle.x + dx, particle.y + dy, 1, 0, color, alpha)
+        local shadow = gfx[compute_particle_expression(particle, config.shadow)]
+        local text = compute_particle_expression(particle, config.text or "'.'")
+        local alpha = compute_particle_expression(particle, config.alpha or 1)
+
+        if shadow then
+            gfx.text_ex("" .. text, particle.x + dx + 1, particle.y + dy + 1, 1, 0, shadow, alpha)
+        end
+        gfx.text_ex("" .. text, particle.x + dx, particle.y + dy, 1, 0, color, alpha)
+    elseif particle.type == "circle" then
+        local radius = compute_particle_expression(particle, config.radius or 1)
+
+        if config.outline then
+            local outline = compute_particle_expression(particle, config.outline or 1)
+            gfx.circ_ex(particle.x + dx, particle.y + dy, radius + outline / 2, outline, color)
+        else
+            gfx.circ_fill(particle.x + dx, particle.y + dy, radius, color)
+        end
+    elseif particle.type == "triangle" then
+        -- local size = self:compute(self.size)
+        local size = compute_particle_expression(particle, config.size or 1)
+        local rotation = 0
+        if config.rotation then
+            rotation = compute_particle_expression(particle, config.rotation or 0)
+        end
+
+        local x = particle.x + dx
+        local y = particle.y + dy
+
+        local x1, y1 = x + math.sin(math.pi * (rotation + 1 / 3)) * size, y + math.cos(math.pi * (rotation + 1 / 3)) * size
+        local x2, y2 = x + math.sin(math.pi * (rotation + 1)) * size, y + math.cos(math.pi * (rotation + 1)) * size
+        local x3, y3 = x + math.sin(math.pi * (rotation + 5 / 3)) * size, y + math.cos(math.pi * (rotation + 5 / 3)) * size
+
+        if config.hollow then
+            gfx.tri(x1, y1, x2, y2, x3, y3, color)
+        else
+            gfx.tri_fill(x1, y1, x2, y2, x3, y3, color)
+        end
+
+        -- if self.outline_color then
+        --     local outline_color = gfx["COLOR_" .. self:compute(self.outline_color)]
+        --     gfx.tri(x1, y1, x2, y2, x3, y3, outline_color)
+        -- end
+    elseif particle.type == "line" then
+            
+        local rotation = 0
+        local length = compute_particle_expression(particle, config.length or 16)
+        local thickness = compute_particle_expression(particle, config.thickness or 1)
+        if config.rotation then
+            rotation = compute_particle_expression(particle, config.rotation)
+        end
+
+        local x1, y1 = particle.x, particle.y
+        local px, py = math.cos(rotation * math.pi) * length, math.sin(rotation * math.pi) * length
+
+        if config.centered then
+            x1 -= px / 2
+            y1 -= py / 2
+        end
+
+        gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color)
     end
 end
 

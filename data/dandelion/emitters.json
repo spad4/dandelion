@@ -13,7 +13,7 @@
                     "thickness": 32,
                     "centered": true,
                     "motion": 128,
-                    "direction": 0.5,
+                    "direction": "self.age * 0.25",
                     "rotation": "self.age * 0.25"
                 }
             }
