@@ -83,5 +83,16 @@
                 "delay": 1.2
             }
         ]
+    },
+    {
+        "name": "fps_emitter",
+        "duration": 0,
+        "particles": [
+            {
+                "name": "test",
+                "count": 1000,
+                "frequency": 5
+            }
+        ]
     }
 ]
