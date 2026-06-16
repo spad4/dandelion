@@ -1,0 +1,9 @@
+[
+    {
+        "name": "bit",
+        "duration": 0.25,
+        "type": "text",
+        "shadow": false,
+        "alpha": "1 - self.age / self.duration"
+    }
+]

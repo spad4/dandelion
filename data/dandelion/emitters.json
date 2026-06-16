@@ -1,0 +1,22 @@
+[
+    {
+        "name": "test",
+        "duration": 2,
+        "particles": [
+            {
+                "name": "bit",
+                "count": 10,
+                "frequency": 0.01,
+                "shape": "line",
+                "config": {
+                    "length": 400,
+                    "thickness": 32,
+                    "centered": true,
+                    "motion": 128,
+                    "direction": 0.5,
+                    "rotation": "self.age * 0.25"
+                }
+            }
+        ]
+    }
+]
