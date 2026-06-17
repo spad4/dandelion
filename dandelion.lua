@@ -24,7 +24,7 @@ for _, particle in pairs(load_particles) do
     table.insert(particle_names, particle.name)
     dandelion[string.lower(particle.name)] = function(x, y, vars)
         -- culling prevents cache sizes from becoming ridiculous
-        if alive_particles > 4000 then return end
+        if alive_particles > 3000 then return end
         local new_particle = {
             x = x,
             y = y,
@@ -164,8 +164,13 @@ end
 local function draw_particle(particle)
     if not particle.type or not particle.config then return end
 
-    local dx = compute_particle_expression(particle, particle.dx or 0)
-    local dy = compute_particle_expression(particle, particle.dy or 0)
+    local adjusted_x = particle.x
+    local adjusted_y = particle.y
+    adjusted_x += compute_particle_expression(particle, particle.dx or 0)
+    adjusted_y += compute_particle_expression(particle, particle.dy or 0)
+    adjusted_x += compute_particle_expression(particle, particle.mx or 0)
+    adjusted_y += compute_particle_expression(particle, particle.my or 0)
+
     local color = gfx[compute_particle_expression(particle, particle.color or "'COLOR_TRUE_WHITE'")]
     local config = particle.config
 
@@ -175,17 +180,17 @@ local function draw_particle(particle)
         local alpha = compute_particle_expression(particle, config.alpha or 1)
 
         if shadow then
-            gfx.text_ex("" .. text, particle.x + dx + 1, particle.y + dy + 1, 1, 0, shadow, alpha)
+            gfx.text_ex("" .. text, adjusted_x + 1, adjusted_y + 1, 1, 0, shadow, alpha)
         end
-        gfx.text_ex("" .. text, particle.x + dx, particle.y + dy, 1, 0, color, alpha)
+        gfx.text_ex("" .. text, adjusted_x, adjusted_y, 1, 0, color, alpha)
     elseif particle.type == "circle" then
         local radius = compute_particle_expression(particle, config.radius or 1)
 
         if config.outline then
             local outline = compute_particle_expression(particle, config.outline or 1)
-            gfx.circ_ex(particle.x + dx, particle.y + dy, radius + outline / 2, outline, color)
+            gfx.circ_ex(adjusted_x, adjusted_y, radius + outline / 2, outline, color)
         else
-            gfx.circ_fill(particle.x + dx, particle.y + dy, radius, color)
+            gfx.circ_fill(adjusted_x, adjusted_y, radius, color)
         end
     elseif particle.type == "triangle" then
         -- local size = self:compute(self.size)
@@ -195,8 +200,8 @@ local function draw_particle(particle)
             rotation = compute_particle_expression(particle, config.rotation or 0)
         end
 
-        local x = particle.x + dx
-        local y = particle.y + dy
+        local x = adjusted_x
+        local y = adjusted_y
 
         local x1, y1 = x + math.sin(math.pi * (rotation + 1 / 3)) * size,
             y + math.cos(math.pi * (rotation + 1 / 3)) * size
@@ -204,7 +209,7 @@ local function draw_particle(particle)
         local x3, y3 = x + math.sin(math.pi * (rotation + 5 / 3)) * size,
             y + math.cos(math.pi * (rotation + 5 / 3)) * size
 
-        if config.hollow then
+        if config.outline then
             gfx.tri(x1, y1, x2, y2, x3, y3, color)
         else
             gfx.tri_fill(x1, y1, x2, y2, x3, y3, color)
@@ -222,7 +227,7 @@ local function draw_particle(particle)
             rotation = compute_particle_expression(particle, config.rotation)
         end
 
-        local x1, y1 = particle.x, particle.y
+        local x1, y1 = adjusted_x, adjusted_y
         local px, py = math.cos(rotation * math.pi) * length, math.sin(rotation * math.pi) * length
 
         if config.centered then
@@ -234,56 +239,117 @@ local function draw_particle(particle)
     end
 end
 
+local side_to_vector = {
+    { x = 0,  y = 1 },
+    { x = 1,  y = 0 },
+    { x = 0,  y = -1 },
+    { x = -1, y = 0 }
+}
+
 -- produces a random position within or on the edge of a rectangle of some width and height
-local function rectangle_emitter(emitter, config)
+local function rectangle_emitter(emitter, config, i, max)
+    local percent = i / max
     local width = compute_emitter_expression(emitter, config.width or 16)
     local height = compute_emitter_expression(emitter, config.height or 16)
+    local a = math.floor(percent * width * height)
+    local distribution = compute_emitter_expression(emitter, config.distribution or "'random'")
 
     local x = 0
     local y = 0
-    if not config.outline then
-        x = math.random() * width - width * 0.5
-        y = math.random() * height - height * 0.5
-    else
-        if math.random() > 0.5 then
-            x = math.random(0, 1) * width - width * 0.5
-            y = math.random() * height - height * 0.5
+    if config.outline then
+        -- particles rotate between each face when emitting
+        if distribution == "even" then
+            local side = i % 4
+
+            if side == 0 then
+                x = percent * width - width * 0.5
+                y = height * -0.5
+            elseif side == 1 then
+                x = width * -0.5
+                y = percent * height - height * 0.5
+            elseif side == 2 then
+                x = percent * width - width * 0.5
+                y = height * 0.5
+            else
+                x = width * 0.5
+                y = percent * height - height * 0.5
+            end
         else
-            x = math.random() * width - width * 0.5
-            y = math.random(0, 1) * height - height * 0.5
+            -- picks a random face to emit to
+            if math.random() > 0.5 then
+                x = math.random(0, 1) * width - width * 0.5
+                y = math.random() * height - height * 0.5
+            else
+                x = math.random() * width - width * 0.5
+                y = math.random(0, 1) * height - height * 0.5
+            end
         end
+    else
+        -- if distribution == "even" then
+            -- x = a % width
+            -- y = (a - a % 10) / height
+        -- else
+            x = math.random() * width - width * 0.5
+            y = math.random() * height - height * 0.5
+        -- end
     end
 
     return x, y
 end
 
 -- produces a random position within or on the edge of a circle of some radius
-local function circle_emitter(emitter, config)
+local function circle_emitter(emitter, config, i, max)
+    local percent = i / max
     local radius = compute_emitter_expression(emitter, config.radius or 16)
+    local distribution = compute_emitter_expression(emitter, config.distribution or "'random'")
+    local rotation = compute_emitter_expression(emitter, config.rotation or 0)
+    local motion = compute_emitter_expression(emitter, config.motion or 0)
+    local direction = compute_emitter_expression(emitter, config.direction or 0) + 0.5
+
+    local a = math.random
+    -- this causes a spiral to form if outline is not also true
+    if distribution == "even" then
+        a = function() return percent end
+    end
 
     local x = 0
     local y = 0
-    local angle = 2 * math.pi * math.random()
+    local angle = 2 * math.pi * (a() + rotation)
+    local ax = math.cos(angle)
+    local ay = math.sin(angle)
     if not config.outline then
-        x = math.cos(angle) * math.random() * radius
-        y = math.sin(angle) * math.random() * radius
+        x = ax * a() * radius
+        y = ay * a() * radius
     else
-        x = math.cos(angle) * radius
-        y = math.sin(angle) * radius
+        x = ax * radius
+        y = ay * radius
     end
 
-    return x, y
+    local mx = "self.age * " .. math.cos(angle + (direction + 0.5) * math.pi) * -motion
+    local my = "self.age * " .. math.sin(angle + (direction + 0.5) * math.pi) * -motion
+
+    return x, y, mx, my
 end
 
 -- produces a random position on one of two lines of some length separated by some thickness with some rotation
-local function line_emitter(emitter, config)
+local function line_emitter(emitter, config, i, max)
+    local percent = i / max
     local length = compute_emitter_expression(emitter, config.length or 16)
     local thickness = compute_emitter_expression(emitter, config.thickness or 0)
     local rotation = compute_emitter_expression(emitter, config.rotation or 0)
-    local velocity = compute_emitter_expression(emitter, config.motion or 0)
-    local direction = compute_emitter_expression(emitter, config.direction or 1)
+    local motion = compute_emitter_expression(emitter, config.motion or 0)
+    local direction = compute_emitter_expression(emitter, config.direction or 0) + 0.5
+    local distribution = compute_emitter_expression(emitter, config.distribution or "'random'")
 
-    local side = math.random() > 0.5 and 1 or -1
+    local a = math.random
+    local side = 1
+    if distribution == "even" then
+        a = function() return percent end
+        side = i % 2 == 0 and 1 or -1
+    else
+        side = math.random() > 0.5 and 1 or -1
+    end
+
     local x = math.cos(math.pi * rotation) * length
     local y = math.sin(math.pi * rotation) * length
     local x_offset = math.cos((0.5 * math.pi) + rotation * math.pi) * thickness * side * 0.5
@@ -293,13 +359,13 @@ local function line_emitter(emitter, config)
     -- local y_motion = math.sin((0.5 * math.pi) + rotation * math.pi) * thickness * side * 0.5
     local x_velocity = nil
     local y_velocity = nil
-    local rand = math.random()
-    if velocity ~= 0 then
+    local rand = a()
+    if motion ~= 0 then
         if side == -1 then
             direction = 1 - direction
         end
-        x_velocity = "self.age * " .. math.cos((rotation + direction) * math.pi) * velocity * side
-        y_velocity = "self.age * " .. math.sin((rotation + direction) * math.pi) * velocity * side
+        x_velocity = "self.age * " .. math.cos((rotation + direction) * math.pi) * motion * side
+        y_velocity = "self.age * " .. math.sin((rotation + direction) * math.pi) * motion * side
     end
 
     local center = config.centered and 0.5 or 0
@@ -309,37 +375,6 @@ local function line_emitter(emitter, config)
 
     return x + x_offset, y + y_offset, x_velocity, y_velocity
 end
-
--- local function triangle_emitter(emitter, config)
---     local length = 16
---     if config.length then
---         length = compute_emitter_expression(emitter, config.length)
---     end
---     if type(length) ~= "number" then return 0, 0 end
-
---     local thickness = 1
---     if config.thickness then
---         thickness = compute_emitter_expression(emitter, config.thickness)
---     end
---     if type(thickness) ~= "number" then return 0, 0 end
-
---     local rotation = 0
---     if config.rotation then
---         rotation = compute_emitter_expression(emitter, config.rotation)
---     end
---     if type(rotation) ~= "number" then return 0, 0 end
-
-
---     local x, y = math.sin(2 * math.pi * rotation) * length, math.cos(2 * math.pi * rotation) * length
-
---     local rand = math.random()
---     local center = config.centered and 0.5 or 0
-
---     x *= rand - center
---     y *= rand - center
-
---     return x, y
--- end
 
 local emitter_shape_function = {
     ["rectangle"] = rectangle_emitter,
@@ -358,11 +393,13 @@ local function emit_particles(emitter)
         if particle.name == emitter.name then goto continue end
 
         if particle.delay then
+            -- delay > 0 means the particle will wait that long before emitting
+            -- delay < 0 means the particle will stop emitting earlier than when the emitter dies
             if particle.delay > 0 and particle.delay > age then goto continue end
             if particle.delay < 0 and (emitter.duration + particle.delay < age) then goto continue end
         end
 
-        local shape_function = function(_, _) return 0, 0 end
+        local shape_function = function(_, _, _, _) return 0, 0 end
         if emitter_shape_function[particle.shape] and particle.config then
             shape_function = emitter_shape_function[particle.shape]
         end
@@ -372,14 +409,15 @@ local function emit_particles(emitter)
 
         if emitter.last_emit[i] ~= emit_count then
             emitter.last_emit[i] = emit_count
-
             local count = particle.count or 1
 
-            for _ = 1, count do
-                local dx, dy, mx, my = shape_function(emitter, particle.config)
-                local vars = {}
-                if mx then vars.dx = mx end
-                if my then vars.dy = my end
+            for j = 1, count do
+                -- mx, my are optional values returned by shape functions that impact
+                -- the motion of particles spawned by the emitter
+                local dx, dy, mx, my = shape_function(emitter, particle.config, j, count)
+                local vars = particle.overrides or {}
+                if mx then vars.mx = mx end
+                if my then vars.my = my end
                 dandelion[string.lower(particle.name)](emitter.x + dx, emitter.y + dy, vars)
             end
         end
@@ -388,12 +426,11 @@ local function emit_particles(emitter)
 end
 
 function dandelion.Draw()
-    -- remove at most 1% of the total number of particles when removing dead ones
-    local may_remove = #particle_cache * 0.01
-
+    -- these hopefully don't need optimized removal, but it can be added later if necessary
     for i = #emitter_cache, 1, -1 do
         local emitter = emitter_cache[i]
         local age = usagi.elapsed - emitter.born
+
         if age > emitter.duration then
             table.remove(emitter_cache, i)
         else
@@ -401,45 +438,43 @@ function dandelion.Draw()
         end
     end
 
+    -- remove at most 1% of the total number of particles each frame
+    local remove_budget = #particle_cache * 0.01
+
+    -- start at the end of the list so remove operations don't make i skip a value
     for i = #particle_cache, 1, -1 do
         local particle = particle_cache[i]
+        --[[
+            why replace instead of remove?
+            in lua, removing an item from the middle of the table shifts all items to the right of it
+            which means that removing an item this way will run a loop of n iterations, where n is
+            the number of elements to the right of that item
+            if we remove every particle immediately when it dies, that means that in the worse case
+            particle_cache results in n^2 iterations in a single frame, which is potentially millions
+            obviously, that's really bad for performance
+            so instead we keep track of which indices can be safely replaced without overwriting a living particle
+            and prefer replacing a living particle over increasing the size of the cache
+            culling helps even more because then the size of the cache will never exceed an amount that
+            would cause table.remove to majorly impact performance
+        ]] --
         if particle.dead or usagi.elapsed - particle.born > particle.duration then
-            --[[
-                why replace instead of remove?
-                in lua, removing an item from the middle of the table shifts all items to the right of it
-                which means that removing an item this way will run a loop of n iterations, where n is
-                the number of elements to the right of that item
-                if we remove every particle immediately when it dies, that means that in the worse case
-                particle_cache results in n^2 iterations in a single frame, which is potentially millions
-                obviously, that's really bad for performance
-                so instead we keep track of which indices can be safely replaced without overwriting a living particle
-                and prefer replacing a living particle rather than increasing the size of the cache
-                culling helps even more because then the size of the cache will NEVER exceed an amount that
-                would cause remove operations to majorly impact performance
-            ]] --
-            if may_remove > 0 then
+            if remove_budget > 0 then
                 if not particle.dead then alive_particles = alive_particles - 1 end
                 table.remove(particle_cache, i)
-                table.remove(open_indices)
-                may_remove -= 1
+                remove_budget -= 1
             else
                 if not particle.dead then
                     particle.dead = true
-                    table.insert(open_indices, i)
                     alive_particles -= 1
+                    -- next time a particle spawns, it will try to replace this one in the table
+                    -- instead of expanding the cache
+                    table.insert(open_indices, i)
                 end
             end
         else
             draw_particle(particle)
         end
-        ::continue::
     end
-
-    -- for i = #particle_cache, 1, -1 do
-    --     if particle_cache[i] and particle_cache[i].dead then
-    --         particle_cache[i] = nil
-    --     end
-    -- end
 end
 
 function dandelion.Particles()
@@ -456,10 +491,13 @@ for i = 1, 60 do
 end
 
 function dandelion.Debug(dt)
-    outlined_text("emitters: " .. #emitter_cache, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    outlined_text("particle cache: " .. #particle_cache, 4, 20, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    outlined_text("alive particles: " .. alive_particles, 4, 30, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    gfx.rect_fill(4, 100, 68, 76, gfx.COLOR_BLACK)
+    -- stats
+    outlined_text("emitters: " .. #emitter_cache, 4, 0, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("particle cache: " .. #particle_cache, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("alive particles: " .. alive_particles, 4, 20, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+
+    -- fps chart
+    gfx.rect_fill(4, 110, 68, 76, gfx.COLOR_BLACK)
     table.remove(fps_history, 1)
     table.insert(fps_history, 60, 1 / dt)
     local avg = 0

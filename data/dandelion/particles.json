@@ -86,10 +86,10 @@
     {
         "name": "flame",
         "duration": 0.6,
-        "type": "triangle",
         "color": "self.age > 0.25 and 'COLOR_RED' or self.age > 0.1 and 'COLOR_ORANGE' or 'COLOR_YELLOW'",
         "dx": "self.age * -1 * (self.random_1 * 4 + 2)",
         "dy": "self.age * -10",
+        "type": "triangle",
         "config": {
             "size": "(self.random_2 * 2 + 3) * (1 - self.age / self.duration + 0.5)",
             "rotation": "self.age * 4 - (self.random_1 * 4)"
@@ -121,6 +121,26 @@
         "type": "circle",
         "config": {
             "radius": "1000 * self.age"
+        }
+    },
+    {
+        "name": "rain",
+        "duration": 4,
+        "type": "line",
+        "color": "'COLOR_DARK_BLUE'",
+        "dx": "-100 + self.age * 50",
+        "dy": "-400 + self.age * 300",
+        "config": {
+            "length": "self.random_1 * 24 + 12",
+            "rotation": "0.4"
+        }
+    },
+    {
+        "name": "dot",
+        "duration": 1,
+        "type": "circle",
+        "config": {
+            "radius": 1
         }
     }
 ]

@@ -43,12 +43,12 @@
     },
     {
         "name": "fire_emitter",
-        "duration": 4,
+        "duration": 2,
         "particles": [
             {
                 "name": "flame",
-                "count": 3,
-                "frequency": 0.25,
+                "count": 2,
+                "frequency": 0.125,
                 "shape": "rectangle",
                 "config": {
                     "width": 16,
@@ -58,7 +58,7 @@
             {
                 "name": "small_smoke",
                 "count": 1,
-                "frequency": 0.25,
+                "frequency": 0.125,
                 "shape": "rectangle",
                 "config": {
                     "width": 16,
@@ -85,17 +85,54 @@
         ]
     },
     {
-        "name": "ring_of_fire",
-        "duration": 2,
+        "name": "fire_flower",
+        "duration": 1,
         "particles": [
             {
                 "name": "flame",
                 "count": 5,
-                "frequency": 0.1,
+                "frequency": 0.05,
+                "shape": "circle",
+                "config": {
+                    "radius": "(self.age > 0.5 and (1 - self.age) or self.age) * 128",
+                    "distribution": "'even'",
+                    "outline": true,
+                    "rotation": "self.age * 0.25"
+                }
+            }
+        ]
+    },
+    {
+        "name": "rain_emitter",
+        "duration": 10,
+        "particles": [
+            {
+                "name": "rain",
+                "count": 100,
+                "frequency": 1,
+                "shape": "rectangle",
+                "config": {
+                    "width": 400,
+                    "height": 400
+                }
+            }
+        ]
+    },
+    {
+        "name": "test",
+        "duration": 2,
+        "particles": [
+            {
+                "name": "dot",
+                "count": 25,
+                "frequency": 0.05,
                 "shape": "circle",
                 "config": {
                     "radius": 64,
-                    "outline": true
+                    "distribution": "'even'",
+                    "outline": true,
+                    "motion": 64,
+                    "direction": "self.age"
                 }
             }
         ]
