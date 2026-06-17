@@ -10,6 +10,11 @@ local emitter_names = {}
 local particle_cache = {}
 local emitter_cache = {}
 
+local alive_particles = 0
+
+-- which indices in the particle cache contain dead particles
+-- new particles will pop an index off this table and replace the dead particle in the cache
+local open_indices = {}
 
 -- register all particle types and constructor functions
 for _, particle in pairs(load_particles) do
@@ -18,6 +23,8 @@ for _, particle in pairs(load_particles) do
 
     table.insert(particle_names, particle.name)
     dandelion[string.lower(particle.name)] = function(x, y, vars)
+        -- culling prevents cache sizes from becoming ridiculous
+        if alive_particles > 4000 then return end
         local new_particle = {
             x = x,
             y = y,
@@ -45,7 +52,18 @@ for _, particle in pairs(load_particles) do
         new_particle.random_2 = math.random()
         new_particle.random_3 = math.random()
         new_particle.random_4 = math.random()
-        table.insert(particle_cache, new_particle)
+        if #open_indices ~= 0 then
+            local open = table.remove(open_indices, #open_indices)
+            if open <= #particle_cache and particle_cache[open].dead then
+                particle_cache[open] = new_particle
+            else
+                table.insert(particle_cache, new_particle)
+            end
+            -- end
+        else
+            table.insert(particle_cache, new_particle)
+        end
+        alive_particles += 1
     end
     ::continue::
 end
@@ -180,9 +198,11 @@ local function draw_particle(particle)
         local x = particle.x + dx
         local y = particle.y + dy
 
-        local x1, y1 = x + math.sin(math.pi * (rotation + 1 / 3)) * size, y + math.cos(math.pi * (rotation + 1 / 3)) * size
+        local x1, y1 = x + math.sin(math.pi * (rotation + 1 / 3)) * size,
+            y + math.cos(math.pi * (rotation + 1 / 3)) * size
         local x2, y2 = x + math.sin(math.pi * (rotation + 1)) * size, y + math.cos(math.pi * (rotation + 1)) * size
-        local x3, y3 = x + math.sin(math.pi * (rotation + 5 / 3)) * size, y + math.cos(math.pi * (rotation + 5 / 3)) * size
+        local x3, y3 = x + math.sin(math.pi * (rotation + 5 / 3)) * size,
+            y + math.cos(math.pi * (rotation + 5 / 3)) * size
 
         if config.hollow then
             gfx.tri(x1, y1, x2, y2, x3, y3, color)
@@ -195,7 +215,6 @@ local function draw_particle(particle)
         --     gfx.tri(x1, y1, x2, y2, x3, y3, outline_color)
         -- end
     elseif particle.type == "line" then
-            
         local rotation = 0
         local length = compute_particle_expression(particle, config.length or 16)
         local thickness = compute_particle_expression(particle, config.thickness or 1)
@@ -368,11 +387,10 @@ local function emit_particles(emitter)
     end
 end
 
-local removed = 0
-local prev_removed = 0
-
 function dandelion.Draw()
-    removed = 0
+    -- remove at most 1% of the total number of particles when removing dead ones
+    local may_remove = #particle_cache * 0.01
+
     for i = #emitter_cache, 1, -1 do
         local emitter = emitter_cache[i]
         local age = usagi.elapsed - emitter.born
@@ -385,13 +403,43 @@ function dandelion.Draw()
 
     for i = #particle_cache, 1, -1 do
         local particle = particle_cache[i]
-        if usagi.elapsed - particle.born > particle.duration then
-            table.remove(particle_cache, i)
-            removed += 1
+        if particle.dead or usagi.elapsed - particle.born > particle.duration then
+            --[[
+                why replace instead of remove?
+                in lua, removing an item from the middle of the table shifts all items to the right of it
+                which means that removing an item this way will run a loop of n iterations, where n is
+                the number of elements to the right of that item
+                if we remove every particle immediately when it dies, that means that in the worse case
+                particle_cache results in n^2 iterations in a single frame, which is potentially millions
+                obviously, that's really bad for performance
+                so instead we keep track of which indices can be safely replaced without overwriting a living particle
+                and prefer replacing a living particle rather than increasing the size of the cache
+                culling helps even more because then the size of the cache will NEVER exceed an amount that
+                would cause remove operations to majorly impact performance
+            ]] --
+            if may_remove > 0 then
+                if not particle.dead then alive_particles = alive_particles - 1 end
+                table.remove(particle_cache, i)
+                table.remove(open_indices)
+                may_remove -= 1
+            else
+                if not particle.dead then
+                    particle.dead = true
+                    table.insert(open_indices, i)
+                    alive_particles -= 1
+                end
+            end
         else
             draw_particle(particle)
         end
+        ::continue::
     end
+
+    -- for i = #particle_cache, 1, -1 do
+    --     if particle_cache[i] and particle_cache[i].dead then
+    --         particle_cache[i] = nil
+    --     end
+    -- end
 end
 
 function dandelion.Particles()
@@ -402,11 +450,35 @@ function dandelion.Emitters()
     return emitter_names
 end
 
-function dandelion.Debug()
-    outlined_text("EMITTERS: " .. #emitter_cache, 4, 12, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    outlined_text("PARTICLES: " .. #particle_cache, 4, 24, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    prev_removed = removed == 0 and prev_removed or removed
-    outlined_text("REMOVED: " .. prev_removed, 4, 36, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+local fps_history = {}
+for i = 1, 60 do
+    fps_history[i] = 0
+end
+
+function dandelion.Debug(dt)
+    outlined_text("emitters: " .. #emitter_cache, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("particle cache: " .. #particle_cache, 4, 20, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("alive particles: " .. alive_particles, 4, 30, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    gfx.rect_fill(4, 100, 68, 76, gfx.COLOR_BLACK)
+    table.remove(fps_history, 1)
+    table.insert(fps_history, 60, 1 / dt)
+    local avg = 0
+    for i = 1, 60 do
+        avg += fps_history[i] / 60
+        local diff = 60 - fps_history[i]
+        local color = gfx.COLOR_GREEN
+        if diff > 2 then
+            color = gfx.COLOR_YELLOW
+        end
+        if diff > 5 then
+            color = gfx.COLOR_ORANGE
+        end
+        if diff > 10 then
+            color = gfx.COLOR_RED
+        end
+        gfx.line(i + 8, 172, i + 8, 172 - diff + 1, color)
+    end
+    outlined_text("FPS: " .. string.format("%.1f", avg), 9, 112, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 end
 
 return dandelion

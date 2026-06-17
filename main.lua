@@ -53,7 +53,6 @@ end
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
   dand.Draw()
-  dand.Debug()
-  outlined_text("SELECTED: " .. emitters[State.emitter_index], 4, usagi.GAME_H - 12, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-  outlined_text("FPS: " .. string.format("%.1f", 1 / dt), 4, 0, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+  dand.Debug(dt)
+  outlined_text(emitters[State.emitter_index], 4, 0, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 end

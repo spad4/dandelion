@@ -85,13 +85,18 @@
         ]
     },
     {
-        "name": "fps_emitter",
-        "duration": 0,
+        "name": "ring_of_fire",
+        "duration": 2,
         "particles": [
             {
-                "name": "test",
-                "count": 1000,
-                "frequency": 5
+                "name": "flame",
+                "count": 5,
+                "frequency": 0.1,
+                "shape": "circle",
+                "config": {
+                    "radius": 64,
+                    "outline": true
+                }
             }
         ]
     }

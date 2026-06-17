@@ -122,13 +122,5 @@
         "config": {
             "radius": "1000 * self.age"
         }
-    },
-    {
-        "name": "test",
-        "duration": 3,
-        "type": "circle",
-        "config": {
-            "radius": 1
-        }
     }
 ]
