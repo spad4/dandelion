@@ -107,7 +107,6 @@ for _, emitter in pairs(load_emitters) do
         --         end
         --     end
         -- end
-
         table.insert(emitter_cache, new_emitter)
     end
     ::continue::
@@ -121,20 +120,22 @@ local function compute_particle_expression(particle, expression)
     end
 
     particle.age = usagi.elapsed - particle.born
+    local emit = particle.emitter
 
     if particle_expression_cache[expression] then
-        return particle_expression_cache[expression](particle)
+        return particle_expression_cache[expression](particle, emit)
     end
 
     -- this converts an expression into a function that can be called
-    local c, err = load("return function (self) return " .. expression .. " end", "expression", "t")
+    local c, err = load("return function (self, emit) return " .. expression .. " end", "expression", "t")
     if not c then return nil end
+
 
     local ok, func = pcall(c)
     if not ok then return nil end
 
     particle_expression_cache[expression] = func
-    return func(particle)
+    return func(particle, emit)
 end
 
 local emitter_expression_cache = {}
@@ -386,6 +387,7 @@ local function emit_particles(emitter)
     local particles = emitter.particles
     if not particles then return end
 
+    print(emitter.name)
     local age = usagi.elapsed - emitter.born
 
     for i, particle in pairs(emitter.particles) do
@@ -418,6 +420,7 @@ local function emit_particles(emitter)
                 local vars = particle.overrides or {}
                 if mx then vars.mx = mx end
                 if my then vars.my = my end
+                vars.emitter = emitter
                 dandelion[string.lower(particle.name)](emitter.x + dx, emitter.y + dy, vars)
             end
         end

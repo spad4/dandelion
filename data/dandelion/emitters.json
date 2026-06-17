@@ -119,20 +119,32 @@
         ]
     },
     {
-        "name": "test",
-        "duration": 2,
+        "name": "dandelion",
+        "duration": 0.05,
         "particles": [
             {
-                "name": "dot",
-                "count": 25,
-                "frequency": 0.05,
+                "name": "dandelion_seed",
+                "count": 3,
+                "frequency": 0.05
+            },
+            {
+                "name": "dandelion_stem",
+                "count": 1,
+                "frequency": 0.05
+            }
+        ]
+    },
+    {
+        "name": "dandelion_cloud",
+        "duration": 0,
+        "particles": [
+            {
+                "name": "dandelion",
+                "count": 5,
+                "frequency": 1,
                 "shape": "circle",
                 "config": {
-                    "radius": 64,
-                    "distribution": "'even'",
-                    "outline": true,
-                    "motion": 64,
-                    "direction": "self.age"
+                    "radius": 32
                 }
             }
         ]

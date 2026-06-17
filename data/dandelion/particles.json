@@ -142,5 +142,30 @@
         "config": {
             "radius": 1
         }
+    },
+    {
+        "name": "dandelion_seed",
+        "duration": 16,
+        "type": "line",
+        "color": "'COLOR_TRUE_WHITE'",
+        "dx": "self.age * (emit.random_2 * 64 + 64)",
+        "dy": "math.sin(self.age) * (emit.random_2 * 8 + 8)",
+        "config": {
+            "length": 8,
+            "centered": true,
+            "rotation": "self.age * (self.random_1 * 0.25 - 0.125) + (self.random_2 * 0.25 - 0.125)"
+        }
+    },
+    {
+        "name": "dandelion_stem",
+        "duration": 8,
+        "type": "line",
+        "color": "'COLOR_DARK_GREEN'",
+        "dx": "self.age * (emit.random_2 * 64 + 64)",
+        "dy": "math.sin(self.age) * (emit.random_2 * 8 + 8)",
+        "config": {
+            "length": 4,
+            "rotation": 0.5
+        }
     }
 ]
