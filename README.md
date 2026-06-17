@@ -14,7 +14,7 @@ Call `dandelion.Draw` anywhere in your `_draw` loop:
 ```lua
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  dand.Draw()
+  dandelion.Draw()
 end
 ```
 
