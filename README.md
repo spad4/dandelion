@@ -29,4 +29,4 @@ end
 ```
 > **NOTE:** `dandelion` is available only if the default particles are installed.
 
-To create a new particle, add an object entry to `dandelion/particles.json`. To create a new emitter, add an object entry to `dandelion/emitters.json`
+To create a new particle, add an object entry to `dandelion/particles.json`. To create a new emitter, add an object entry to `dandelion/emitters.json`. Learn more about creating particles and emitters [on the wiki.](https://github.com/spad4/dandelion/wiki)
