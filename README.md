@@ -1,6 +1,10 @@
 ![](https://github.com/spad4/dandelion/blob/main/assets/logo.gif?raw=true)
 Dandelion is a data-driven particle library for [Usagi Engine](https://usagiengine.com/). Design complex and beautiful particles without writing a single line of code.
 
+![](https://github.com/spad4/dandelion/blob/main/assets/fire_flower.gif?raw=true)
+![](https://github.com/spad4/dandelion/blob/main/assets/laser_emitter.gif?raw=true)
+![](https://github.com/spad4/dandelion/blob/main/assets/rain_emitter.gif?raw=true)
+
 ## Installation
 Download the latest release from releases and extract. Paste the contents (`dandelion.lua` and `data`) into the top level of your Usagi project.
 
