@@ -52,10 +52,7 @@ end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  -- dand.Debug(dt)
-  
-  gfx.text_ex("DANDELION", 66, 64, 4, 0, gfx.COLOR_ORANGE, 1)
-  gfx.text_ex("DANDELION", 64, 64, 4, 0, gfx.COLOR_YELLOW, 1)
   dand.Draw()
-  -- outlined_text(emitters[State.emitter_index], 4, 170, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+  dand.Debug(dt)
+  outlined_text(emitters[State.emitter_index], 4, 170, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 end
