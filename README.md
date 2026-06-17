@@ -1,2 +1,2 @@
-![](https://github.com/spad4/dandelion/blob/main/assets/ezgif-202e5a89efba46d1.gif?raw=true)
+![](https://github.com/spad4/dandelion/blob/main/assets/ezgif-21a2bfb3a56a7057.gif?raw=true)
 Dandelion is a data-driven particle library for [Usagi Engine](https://usagiengine.com/). Design beautiful and complex particles without touching a single line of code.
