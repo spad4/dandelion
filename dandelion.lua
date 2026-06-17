@@ -387,7 +387,6 @@ local function emit_particles(emitter)
     local particles = emitter.particles
     if not particles then return end
 
-    print(emitter.name)
     local age = usagi.elapsed - emitter.born
 
     for i, particle in pairs(emitter.particles) do

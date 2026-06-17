@@ -136,12 +136,12 @@
     },
     {
         "name": "dandelion_cloud",
-        "duration": 0,
+        "duration": 2.5,
         "particles": [
             {
                 "name": "dandelion",
                 "count": 5,
-                "frequency": 1,
+                "frequency": 0.5,
                 "shape": "circle",
                 "config": {
                     "radius": 32
