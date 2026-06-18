@@ -97,7 +97,7 @@
                     "radius": "(self.age > 0.5 and (1 - self.age) or self.age) * 128",
                     "distribution": "even",
                     "outline": true,
-                    "rotation": "self.age * 0.25"
+                    "rotation": "self.age * 0.25 + self.random_1 * 0.25"
                 }
             }
         ]
@@ -124,7 +124,7 @@
         "particles": [
             {
                 "name": "dandelion_seed",
-                "count": 3,
+                "count": 4,
                 "frequency": 0.05
             },
             {
@@ -136,7 +136,8 @@
     },
     {
         "name": "dandelion_cloud",
-        "duration": 2.5,
+        "duration": 10,
+        "dx": -300,
         "particles": [
             {
                 "name": "dandelion",
@@ -144,7 +145,7 @@
                 "frequency": 0.5,
                 "shape": "circle",
                 "config": {
-                    "radius": 32
+                    "radius": 128
                 }
             }
         ]

@@ -1,4 +1,4 @@
-local dand = require("dandelion")
+local dandelion = require("dandelion")
 
 function _config()
   ---@type Usagi.Config
@@ -15,7 +15,7 @@ function _init()
 end
 
 local counter = 1
-local emitters = dand.Emitters()
+local emitters = dandelion.Emitters()
 
 function _update(dt)
 
@@ -23,14 +23,18 @@ function _update(dt)
     State.emitter_index = (State.emitter_index % #emitters) + 1
   end
 
+  if input.key_pressed(input.KEY_C) then
+    dandelion.ClearAll()
+  end
+
   if input.mouse_pressed(input.MOUSE_LEFT) then
-    dand[emitters[State.emitter_index]](input.mouse())
+    dandelion[emitters[State.emitter_index]](input.mouse())
   end
 
   if input.mouse_held(input.MOUSE_RIGHT) then
     counter += 1
     if counter > 1 then
-      dand[emitters[State.emitter_index]](input.mouse())
+      dandelion[emitters[State.emitter_index]](input.mouse())
       counter = 0
     end
   end
@@ -52,7 +56,7 @@ end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  dand.Draw()
-  dand.Debug(dt)
+  dandelion.Draw()
+  dandelion.Debug(dt)
   outlined_text(emitters[State.emitter_index], 4, 170, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 end

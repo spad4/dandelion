@@ -145,7 +145,7 @@
     },
     {
         "name": "dandelion_seed",
-        "duration": 16,
+        "duration": 8,
         "type": "line",
         "color": "gfx.COLOR_TRUE_WHITE",
         "dx": "self.age * (emit.random_2 * 64 + 64)",
@@ -153,12 +153,12 @@
         "config": {
             "length": 8,
             "centered": true,
-            "rotation": "self.age * (self.random_1 * 0.25 - 0.125) + (self.random_2 * 0.25 - 0.125)"
+            "rotation": "self.age * (self.random_1 * 0.125 - 0.0625) + (self.random_2 * 0.25 - 0.125)"
         }
     },
     {
         "name": "dandelion_stem",
-        "duration": 16,
+        "duration": 8,
         "type": "line",
         "color": "gfx.COLOR_DARK_GREEN",
         "dx": "self.age * (emit.random_2 * 64 + 64)",

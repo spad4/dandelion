@@ -24,7 +24,7 @@ for _, particle in pairs(load_particles) do
     table.insert(particle_names, particle.name)
     dandelion[string.lower(particle.name)] = function(x, y, vars)
         -- culling prevents cache sizes from becoming ridiculous
-        if alive_particles > 3000 then return end
+        if not particle.no_cull and alive_particles > 3000 then return end
         local new_particle = {
             x = x,
             y = y,
@@ -388,6 +388,8 @@ local function emit_particles(emitter)
     if not particles then return end
 
     local age = usagi.elapsed - emitter.born
+    local dx = compute_emitter_expression(emitter, emitter.dx or 0)
+    local dy = compute_emitter_expression(emitter, emitter.dy or 0)
 
     for i, particle in pairs(emitter.particles) do
         if not particle.name then goto continue end
@@ -415,12 +417,12 @@ local function emit_particles(emitter)
             for j = 1, count do
                 -- mx, my are optional values returned by shape functions that impact
                 -- the motion of particles spawned by the emitter
-                local dx, dy, mx, my = shape_function(emitter, particle.config, j, count)
+                local sx, sy, mx, my = shape_function(emitter, particle.config, j, count)
                 local vars = particle.overrides or {}
                 if mx then vars.mx = mx end
                 if my then vars.my = my end
                 vars.emitter = emitter
-                dandelion[string.lower(particle.name)](emitter.x + dx, emitter.y + dy, vars)
+                dandelion[string.lower(particle.name)](emitter.x + dx + sx, emitter.y + dy + sy, vars)
             end
         end
         ::continue::
@@ -490,6 +492,12 @@ end
 local fps_history = {}
 for i = 1, 60 do
     fps_history[i] = 0
+end
+
+function dandelion.ClearAll()
+    particle_cache = {}
+    emitter_cache = {}
+    alive_particles = 0
 end
 
 function dandelion.Debug(dt)
