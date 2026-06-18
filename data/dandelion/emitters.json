@@ -95,7 +95,7 @@
                 "shape": "circle",
                 "config": {
                     "radius": "(self.age > 0.5 and (1 - self.age) or self.age) * 128",
-                    "distribution": "'even'",
+                    "distribution": "even",
                     "outline": true,
                     "rotation": "self.age * 0.25"
                 }

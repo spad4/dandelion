@@ -253,7 +253,7 @@ local function rectangle_emitter(emitter, config, i, max)
     local width = compute_emitter_expression(emitter, config.width or 16)
     local height = compute_emitter_expression(emitter, config.height or 16)
     local a = math.floor(percent * width * height)
-    local distribution = compute_emitter_expression(emitter, config.distribution or "'random'")
+    local distribution = config.distribution or "random"
 
     local x = 0
     local y = 0
@@ -302,7 +302,7 @@ end
 local function circle_emitter(emitter, config, i, max)
     local percent = i / max
     local radius = compute_emitter_expression(emitter, config.radius or 16)
-    local distribution = compute_emitter_expression(emitter, config.distribution or "'random'")
+    local distribution = config.distribution or "random"
     local rotation = compute_emitter_expression(emitter, config.rotation or 0)
     local motion = compute_emitter_expression(emitter, config.motion or 0)
     local direction = compute_emitter_expression(emitter, config.direction or 0) + 0.5
@@ -340,7 +340,7 @@ local function line_emitter(emitter, config, i, max)
     local rotation = compute_emitter_expression(emitter, config.rotation or 0)
     local motion = compute_emitter_expression(emitter, config.motion or 0)
     local direction = compute_emitter_expression(emitter, config.direction or 0) + 0.5
-    local distribution = compute_emitter_expression(emitter, config.distribution or "'random'")
+    local distribution = config.distribution or "random"
 
     local a = math.random
     local side = 1
