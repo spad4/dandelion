@@ -7,7 +7,9 @@
         "config": {
             "text": "'TEXT'",
             "shadow": "'COLOR_DARK_GREEN'",
-            "alpha": "1 - self.age / self.duration"
+            "alpha": "1 - self.age / self.duration",
+            "scale": "self.age + 1",
+            "rotation": "math.sin(self.age * 16) * (1 - self.age / self.duration) * 0.04"
         }
     },
     {

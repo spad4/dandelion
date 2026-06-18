@@ -154,7 +154,7 @@
         "name": "rect_emitter",
         "particles": [
             {
-                "name": "rectangle"
+                "name": "text"
             }
         ]
     }

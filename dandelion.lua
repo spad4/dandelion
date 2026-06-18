@@ -183,11 +183,13 @@ local function draw_particle(particle)
         local shadow = gfx[compute_particle_expression(particle, config.shadow)]
         local text = compute_particle_expression(particle, config.text or "'.'")
         local alpha = compute_particle_expression(particle, config.alpha or 1)
+        local scale = compute_particle_expression(particle, config.scale or 1)
+        local rotation = compute_particle_expression(particle, config.rotation or 0) * math.pi
 
         if shadow then
-            gfx.text_ex("" .. text, adjusted_x + 1, adjusted_y + 1, 1, 0, shadow, alpha)
+            gfx.text_ex("" .. text, adjusted_x + 1, adjusted_y + 1, scale, rotation, shadow, alpha)
         end
-        gfx.text_ex("" .. text, adjusted_x, adjusted_y, 1, 0, color, alpha)
+        gfx.text_ex("" .. text, adjusted_x, adjusted_y, scale, rotation, color, alpha)
     elseif particle.type == "circle" then
         local radius = compute_particle_expression(particle, config.radius or 1)
 
@@ -331,8 +333,20 @@ local function rectangle_emitter(emitter, config, i, max)
         end
     else
         -- if distribution == "even" then
-            -- x = a % width
-            -- y = (a - a % 10) / height
+            -- local r = width / height
+            -- local w, h = r, 1
+            -- if r > 1 then
+                -- w, h = 1, r
+            -- end
+            -- local sqrt = math.sqrt(max)
+            -- local pw = sqrt * w
+            -- local ph = sqrt * h
+            -- local px = i % pw
+            -- local py = math.floor((i - 1) / ph)
+-- 
+            -- x = pw * px
+            -- y = ph * py
+-- 
         -- else
             x = math.random() * width - width * 0.5
             y = math.random() * height - height * 0.5
