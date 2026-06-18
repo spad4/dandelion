@@ -3,7 +3,7 @@
         "name": "text",
         "duration": 1,
         "type": "text",
-        "color": "'COLOR_GREEN'",
+        "color": "gfx.COLOR_GREEN",
         "config": {
             "text": "'TEXT'",
             "shadow": "'COLOR_DARK_GREEN'",
@@ -14,7 +14,7 @@
         "name": "circle",
         "duration": 1,
         "type": "circle",
-        "color": "'COLOR_GREEN'",
+        "color": "gfx.COLOR_GREEN",
         "config": {
             "radius": 10,
             "outline": 5
@@ -24,7 +24,7 @@
         "name": "triangle",
         "duration": 1,
         "type": "triangle",
-        "color": "'COLOR_GREEN'",
+        "color": "gfx.COLOR_GREEN",
         "config": {
             "size": 10,
             "rotation": "self.age",
@@ -35,7 +35,7 @@
         "name": "line",
         "duration": 1,
         "type": "line",
-        "color": "'COLOR_GREEN'",
+        "color": "gfx.COLOR_GREEN",
         "config": {
             "thickness": 2,
             "length": "64 * (1 - self.age / self.duration)",
@@ -47,7 +47,7 @@
         "name": "laser_line",
         "duration": 4,
         "type": "line",
-        "color": "'COLOR_RED'",
+        "color": "gfx.COLOR_RED",
         "config": {
             "thickness": 32,
             "length": 400,
@@ -58,7 +58,7 @@
         "name": "laser_center",
         "duration": 4,
         "type": "circle",
-        "color": "'COLOR_RED'",
+        "color": "gfx.COLOR_RED",
         "config": {
             "radius": 16
         }
@@ -67,7 +67,7 @@
         "name": "laser_triangle",
         "duration": 0.4,
         "type": "triangle",
-        "color": "'COLOR_RED'",
+        "color": "gfx.COLOR_RED",
         "config": {
             "size": "(9 + self.random_2 * 9) * (1 - self.age / self.duration)",
             "rotation": "self.age * 4 - (self.random_1 * 4)"
@@ -77,7 +77,7 @@
         "name": "laser_circle",
         "duration": 0.6,
         "type": "circle",
-        "color": "'COLOR_RED'",
+        "color": "gfx.COLOR_RED",
         "config": {
             "radius": "(3 + self.random_2 * 6) * (1 - self.age / self.duration)",
             "rotation": "self.age * 4 - (self.random_1 * 4)"
@@ -86,7 +86,7 @@
     {
         "name": "flame",
         "duration": 0.6,
-        "color": "self.age > 0.25 and 'COLOR_RED' or self.age > 0.1 and 'COLOR_ORANGE' or 'COLOR_YELLOW'",
+        "color": "self.age > 0.25 and gfx.COLOR_RED or self.age > 0.1 and gfx.COLOR_ORANGE or gfx.COLOR_YELLOW",
         "dx": "self.age * -1 * (self.random_1 * 4 + 2)",
         "dy": "self.age * -10",
         "type": "triangle",
@@ -98,7 +98,7 @@
     {
         "name": "small_smoke",
         "duration": 1.5,
-        "color": "self.random_1 > 0.5 and 'COLOR_DARK_GRAY' or 'COLOR_BLACK'",
+        "color": "self.random_1 > 0.5 and gfx.COLOR_DARK_GRAY or gfx.COLOR_BLACK",
         "dx": "self.age * -1 * (self.random_1 * 4 + 2)",
         "dy": "self.age * -10",
         "type": "circle",
@@ -127,7 +127,7 @@
         "name": "rain",
         "duration": 4,
         "type": "line",
-        "color": "'COLOR_DARK_BLUE'",
+        "color": "gfx.COLOR_DARK_BLUE",
         "dx": "-100 + self.age * 50",
         "dy": "-400 + self.age * 300",
         "config": {
@@ -147,7 +147,7 @@
         "name": "dandelion_seed",
         "duration": 16,
         "type": "line",
-        "color": "'COLOR_TRUE_WHITE'",
+        "color": "gfx.COLOR_TRUE_WHITE",
         "dx": "self.age * (emit.random_2 * 64 + 64)",
         "dy": "math.sin(self.age) * (emit.random_2 * 8 + 8)",
         "config": {
@@ -158,9 +158,9 @@
     },
     {
         "name": "dandelion_stem",
-        "duration": 8,
+        "duration": 16,
         "type": "line",
-        "color": "'COLOR_DARK_GREEN'",
+        "color": "gfx.COLOR_DARK_GREEN",
         "dx": "self.age * (emit.random_2 * 64 + 64)",
         "dy": "math.sin(self.age) * (emit.random_2 * 8 + 8)",
         "config": {

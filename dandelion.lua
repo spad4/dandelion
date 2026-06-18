@@ -172,7 +172,7 @@ local function draw_particle(particle)
     adjusted_x += compute_particle_expression(particle, particle.mx or 0)
     adjusted_y += compute_particle_expression(particle, particle.my or 0)
 
-    local color = gfx[compute_particle_expression(particle, particle.color or "'COLOR_TRUE_WHITE'")]
+    local color = compute_particle_expression(particle, particle.color or gfx.COLOR_TRUE_WHITE)
     local config = particle.config
 
     if particle.type == "text" then
