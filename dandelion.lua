@@ -16,6 +16,55 @@ local alive_particles = 0
 -- new particles will pop an index off this table and replace the dead particle in the cache
 local open_indices = {}
 
+local particle_expression_cache = {}
+
+local function compute_particle_expression(particle, expression)
+    if type(expression) ~= "string" then
+        return expression
+    end
+
+    particle.age = usagi.elapsed - particle.born
+    local emit = particle.emitter
+
+    if particle_expression_cache[expression] then
+        return particle_expression_cache[expression](particle, emit)
+    end
+
+    -- this converts an expression into a function that can be called
+    local c, err = load("return function (self, emit) return " .. expression .. " end", "expression", "t")
+    if not c then return nil end
+
+
+    local ok, func = pcall(c)
+    if not ok then return nil end
+
+    particle_expression_cache[expression] = func
+    return func(particle, emit)
+end
+
+local emitter_expression_cache = {}
+local function compute_emitter_expression(emitter, expression)
+    if type(expression) ~= "string" then
+        return expression
+    end
+
+    emitter.age = usagi.elapsed - emitter.born
+
+    if emitter_expression_cache[expression] then
+        return emitter_expression_cache[expression](emitter)
+    end
+
+    -- this converts an expression into a function that can be called
+    local c, err = load("return function (self) return " .. expression .. " end", "expression", "t")
+    if not c then return nil end
+
+    local ok, func = pcall(c)
+    if not ok then return nil end
+
+    emitter_expression_cache[expression] = func
+    return func(emitter)
+end
+
 -- register all particle types and constructor functions
 for _, particle in pairs(load_particles) do
     -- no duplicates, first come first serve for names
@@ -52,6 +101,9 @@ for _, particle in pairs(load_particles) do
         new_particle.random_2 = math.random()
         new_particle.random_3 = math.random()
         new_particle.random_4 = math.random()
+
+        new_particle.duration = compute_particle_expression(new_particle, new_particle.duration or 1)
+
         if #open_indices ~= 0 then
             local open = table.remove(open_indices, #open_indices)
             if open <= #particle_cache and particle_cache[open].dead then
@@ -99,6 +151,8 @@ for _, emitter in pairs(load_emitters) do
         new_emitter.random_3 = math.random()
         new_emitter.random_4 = math.random()
 
+        new_emitter.duration = compute_emitter_expression(new_emitter, new_emitter.duration or 1)
+
         -- if vars then
         --     for k, v in pairs(vars) do
         --         -- these properties are immutable
@@ -110,56 +164,6 @@ for _, emitter in pairs(load_emitters) do
         table.insert(emitter_cache, new_emitter)
     end
     ::continue::
-end
-
-local particle_expression_cache = {}
-
-local function compute_particle_expression(particle, expression)
-    if type(expression) ~= "string" then
-        return expression
-    end
-
-    particle.age = usagi.elapsed - particle.born
-    local emit = particle.emitter
-
-    if particle_expression_cache[expression] then
-        return particle_expression_cache[expression](particle, emit)
-    end
-
-    -- this converts an expression into a function that can be called
-    local c, err = load("return function (self, emit) return " .. expression .. " end", "expression", "t")
-    if not c then return nil end
-
-
-    local ok, func = pcall(c)
-    if not ok then return nil end
-
-    particle_expression_cache[expression] = func
-    return func(particle, emit)
-end
-
-local emitter_expression_cache = {}
-
-local function compute_emitter_expression(emitter, expression)
-    if type(expression) ~= "string" then
-        return expression
-    end
-
-    emitter.age = usagi.elapsed - emitter.born
-
-    if emitter_expression_cache[expression] then
-        return emitter_expression_cache[expression](emitter)
-    end
-
-    -- this converts an expression into a function that can be called
-    local c, err = load("return function (self) return " .. expression .. " end", "expression", "t")
-    if not c then return nil end
-
-    local ok, func = pcall(c)
-    if not ok then return nil end
-
-    emitter_expression_cache[expression] = func
-    return func(emitter)
 end
 
 local function draw_particle(particle)

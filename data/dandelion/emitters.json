@@ -43,7 +43,7 @@
     },
     {
         "name": "fire_emitter",
-        "duration": 2,
+        "duration": "self.random_1 * 4",
         "particles": [
             {
                 "name": "flame",

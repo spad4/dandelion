@@ -85,7 +85,7 @@
     },
     {
         "name": "flame",
-        "duration": 0.6,
+        "duration": 0.5,
         "color": "self.age > 0.25 and gfx.COLOR_RED or self.age > 0.1 and gfx.COLOR_ORANGE or gfx.COLOR_YELLOW",
         "dx": "self.age * -1 * (self.random_1 * 4 + 2)",
         "dy": "self.age * -10",
