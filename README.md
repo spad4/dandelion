@@ -2,7 +2,7 @@
 Dandelion is a data-driven particle library for [Usagi Engine](https://usagiengine.com/). Design complex and beautiful particles without writing a single line of code.
 
 ## Installation
-Download the latest release from releases and extract. Paste the contents (`dandelion.lua` and `data`) into the top level of your Usagi project.
+Download the latest release and extract. Paste the contents (`dandelion.lua` and `data`) into the top level of your Usagi project.
 
 ## Usage
 Import the module:
