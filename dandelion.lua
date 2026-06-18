@@ -16,6 +16,55 @@ local alive_particles = 0
 -- new particles will pop an index off this table and replace the dead particle in the cache
 local open_indices = {}
 
+-- cache of chunks returned by properties so new functions aren't created every time a chunk is read
+local chunk_cache = {}
+
+local function compute_particle_expression(particle, expression)
+    if type(expression) ~= "string" then
+        return expression
+    end
+
+    particle.age = usagi.elapsed - particle.born
+    local emit = particle.emitter
+
+    if chunk_cache[expression] then
+        return chunk_cache[expression](particle, emit)
+    end
+
+    -- this converts an expression into a function that can be called
+    local c, err = load("return function (self, emit) return " .. expression .. " end", "expression", "t")
+    if not c then return nil end
+
+
+    local ok, func = pcall(c)
+    if not ok then return nil end
+
+    chunk_cache[expression] = func
+    return func(particle, emit)
+end
+
+local function compute_emitter_expression(emitter, expression)
+    if type(expression) ~= "string" then
+        return expression
+    end
+
+    emitter.age = usagi.elapsed - emitter.born
+
+    if chunk_cache[expression] then
+        return chunk_cache[expression](emitter)
+    end
+
+    -- this converts an expression into a function that can be called
+    local c, err = load("return function (self) return " .. expression .. " end", "expression", "t")
+    if not c then return nil end
+
+    local ok, func = pcall(c)
+    if not ok then return nil end
+
+    chunk_cache[expression] = func
+    return func(emitter)
+end
+
 -- register all particle types and constructor functions
 for _, particle in pairs(load_particles) do
     -- no duplicates, first come first serve for names
@@ -52,6 +101,9 @@ for _, particle in pairs(load_particles) do
         new_particle.random_2 = math.random()
         new_particle.random_3 = math.random()
         new_particle.random_4 = math.random()
+
+        new_particle.duration = compute_particle_expression(new_particle, new_particle.duration or 1)
+
         if #open_indices ~= 0 then
             local open = table.remove(open_indices, #open_indices)
             if open <= #particle_cache and particle_cache[open].dead then
@@ -99,6 +151,8 @@ for _, emitter in pairs(load_emitters) do
         new_emitter.random_3 = math.random()
         new_emitter.random_4 = math.random()
 
+        new_emitter.duration = compute_emitter_expression(new_emitter, new_emitter.duration or 1)
+
         -- if vars then
         --     for k, v in pairs(vars) do
         --         -- these properties are immutable
@@ -110,56 +164,6 @@ for _, emitter in pairs(load_emitters) do
         table.insert(emitter_cache, new_emitter)
     end
     ::continue::
-end
-
-local particle_expression_cache = {}
-
-local function compute_particle_expression(particle, expression)
-    if type(expression) ~= "string" then
-        return expression
-    end
-
-    particle.age = usagi.elapsed - particle.born
-    local emit = particle.emitter
-
-    if particle_expression_cache[expression] then
-        return particle_expression_cache[expression](particle, emit)
-    end
-
-    -- this converts an expression into a function that can be called
-    local c, err = load("return function (self, emit) return " .. expression .. " end", "expression", "t")
-    if not c then return nil end
-
-
-    local ok, func = pcall(c)
-    if not ok then return nil end
-
-    particle_expression_cache[expression] = func
-    return func(particle, emit)
-end
-
-local emitter_expression_cache = {}
-
-local function compute_emitter_expression(emitter, expression)
-    if type(expression) ~= "string" then
-        return expression
-    end
-
-    emitter.age = usagi.elapsed - emitter.born
-
-    if emitter_expression_cache[expression] then
-        return emitter_expression_cache[expression](emitter)
-    end
-
-    -- this converts an expression into a function that can be called
-    local c, err = load("return function (self) return " .. expression .. " end", "expression", "t")
-    if not c then return nil end
-
-    local ok, func = pcall(c)
-    if not ok then return nil end
-
-    emitter_expression_cache[expression] = func
-    return func(emitter)
 end
 
 local function draw_particle(particle)
@@ -196,10 +200,7 @@ local function draw_particle(particle)
     elseif particle.type == "triangle" then
         -- local size = self:compute(self.size)
         local size = compute_particle_expression(particle, config.size or 1)
-        local rotation = 0
-        if config.rotation then
-            rotation = compute_particle_expression(particle, config.rotation or 0)
-        end
+        local rotation = compute_particle_expression(particle, config.rotation or 0)
 
         local x = adjusted_x
         local y = adjusted_y
@@ -210,7 +211,7 @@ local function draw_particle(particle)
         local x3, y3 = x + math.sin(math.pi * (rotation + 5 / 3)) * size,
             y + math.cos(math.pi * (rotation + 5 / 3)) * size
 
-        if config.outline then
+        if config.hollow then
             gfx.tri(x1, y1, x2, y2, x3, y3, color)
         else
             gfx.tri_fill(x1, y1, x2, y2, x3, y3, color)
@@ -221,12 +222,9 @@ local function draw_particle(particle)
         --     gfx.tri(x1, y1, x2, y2, x3, y3, outline_color)
         -- end
     elseif particle.type == "line" then
-        local rotation = 0
         local length = compute_particle_expression(particle, config.length or 16)
         local thickness = compute_particle_expression(particle, config.thickness or 1)
-        if config.rotation then
-            rotation = compute_particle_expression(particle, config.rotation)
-        end
+        local rotation = compute_particle_expression(particle, config.rotation or 0)
 
         local x1, y1 = adjusted_x, adjusted_y
         local px, py = math.cos(rotation * math.pi) * length, math.sin(rotation * math.pi) * length
@@ -237,6 +235,52 @@ local function draw_particle(particle)
         end
 
         gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color)
+    elseif particle.type == "rectangle" then
+        local width = compute_particle_expression(particle, config.width or 16)
+        local height = compute_particle_expression(particle, config.height or 16)
+        local half_width = width / 2
+        local half_height = height / 2
+        local rotation = compute_particle_expression(particle, config.rotation or 0.25) * math.pi
+        local outline = compute_particle_expression(particle, config.outline or 1)
+
+        local x1, y1 = adjusted_x - math.cos(rotation) * (half_width + 0.5), adjusted_y - math.sin(rotation) * (half_height + 0.5)
+        local x2, y2 = adjusted_x - math.cos(rotation + math.pi * 0.5) * (half_width + 0.5), adjusted_y - math.sin(rotation + math.pi * 0.5) * (half_height + 0.5)
+        local x3, y3 = adjusted_x - math.cos(rotation + math.pi) * (half_width + 0.5), adjusted_y - math.sin(rotation + math.pi) * (half_height + 0.5)
+        local x4, y4 = adjusted_x - math.cos(rotation - math.pi * 0.5) * (half_width + 0.5), adjusted_y +-math.sin(rotation - math.pi * 0.5) * (half_height + 0.5)
+        
+        if config.rotation and config.rotation ~= 0 then
+            if config.outline then
+                gfx.line_ex(x1, y1, x2, y2, outline, color)
+                gfx.line_ex(x2, y2, x3, y3, outline, color)
+                gfx.line_ex(x3, y3, x4 - 1, y4, outline, color)
+                gfx.line_ex(x4, y4, x1, y1, outline, color)
+            else
+                gfx.tri_fill(x1, y1, x2, y2, x4, y4, color)
+                gfx.tri_fill(x3, y3, x2, y2, x4, y4, color)
+            end
+        else
+            if config.outline then
+                gfx.rect_ex(adjusted_x - half_width, adjusted_y - half_height, width, height, outline, color)
+            else
+                gfx.rect_fill(adjusted_x - half_width, adjusted_y - half_height, width, height, color)
+            end
+        end
+
+
+        -- particle.x - math.sin(rotation) * width / 2
+
+
+
+
+        -- local x1, y1 = adjusted_x, adjusted_y
+        -- local px, py = math.cos(rotation * math.pi) * length, math.sin(rotation * math.pi) * length
+
+        -- if config.centered then
+        --     x1 -= px / 2
+        --     y1 -= py / 2
+        -- end
+
+        -- gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color)
     end
 end
 

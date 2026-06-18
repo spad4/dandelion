@@ -43,7 +43,7 @@
     },
     {
         "name": "fire_emitter",
-        "duration": 2,
+        "duration": "self.random_1 * 4",
         "particles": [
             {
                 "name": "flame",
@@ -147,6 +147,14 @@
                 "config": {
                     "radius": 128
                 }
+            }
+        ]
+    },
+    {
+        "name": "rect_emitter",
+        "particles": [
+            {
+                "name": "rectangle"
             }
         ]
     }

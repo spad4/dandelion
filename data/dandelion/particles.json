@@ -43,6 +43,18 @@
             "rotation": "self.age"
         }
     },
+        {
+        "name": "rectangle",
+        "duration": 1,
+        "type": "rectangle",
+        "color": "gfx.COLOR_GREEN",
+        "config": {
+            "width": 16,
+            "height": 16,
+            "outline": 1,
+            "rotation": "self.age"
+        }
+    },
     {
         "name": "laser_line",
         "duration": 4,
