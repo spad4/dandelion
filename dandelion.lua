@@ -153,14 +153,14 @@ for _, emitter in pairs(load_emitters) do
 
         new_emitter.duration = compute_emitter_expression(new_emitter, new_emitter.duration or 1)
 
-        -- if vars then
-        --     for k, v in pairs(vars) do
-        --         -- these properties are immutable
-        --         if k ~= "name" and k ~= "x" and k ~= "y" and k ~= "born" then
-        --             new_emitter[k] = v
-        --         end
-        --     end
-        -- end
+        if vars then
+            for k, v in pairs(vars) do
+                -- these properties are immutable
+                if k ~= "name" and k ~= "x" and k ~= "y" and k ~= "born" then
+                    new_emitter[k] = v
+                end
+            end
+        end
         table.insert(emitter_cache, new_emitter)
     end
     ::continue::
@@ -180,7 +180,7 @@ local function draw_particle(particle)
     local config = particle.config
 
     if particle.type == "text" then
-        local shadow = gfx[compute_particle_expression(particle, config.shadow)]
+        local shadow = compute_particle_expression(particle, config.shadow)
         local text = compute_particle_expression(particle, config.text or "'.'")
         local alpha = compute_particle_expression(particle, config.alpha or 1)
         local scale = compute_particle_expression(particle, config.scale or 1)
@@ -229,8 +229,8 @@ local function draw_particle(particle)
         local rotation = compute_particle_expression(particle, config.rotation or 0)
 
         local x1, y1 = adjusted_x, adjusted_y
-        local px, py = math.cos(rotation * math.pi) * length, math.sin(rotation * math.pi) * length
-
+        local v = util.vec_from_angle(rotation, length)
+        local px, py = v.x, v.y
         if config.centered then
             x1 -= px / 2
             y1 -= py / 2
@@ -285,13 +285,6 @@ local function draw_particle(particle)
         -- gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color)
     end
 end
-
-local side_to_vector = {
-    { x = 0,  y = 1 },
-    { x = 1,  y = 0 },
-    { x = 0,  y = -1 },
-    { x = -1, y = 0 }
-}
 
 -- produces a random position within or on the edge of a rectangle of some width and height
 local function rectangle_emitter(emitter, config, i, max)
@@ -373,7 +366,7 @@ local function circle_emitter(emitter, config, i, max)
 
     local x = 0
     local y = 0
-    local angle = 2 * math.pi * (a() + rotation)
+    local angle = math.pi * (2 * a() + rotation)
     local ax = math.cos(angle)
     local ay = math.sin(angle)
     if not config.outline then
@@ -553,8 +546,16 @@ for i = 1, 60 do
 end
 
 function dandelion.ClearAll()
-    particle_cache = {}
+   dandelion.ClearEmitters()
+   dandelion.ClearParticles()
+end
+
+function dandelion.ClearEmitters()
     emitter_cache = {}
+end
+
+function dandelion.ClearParticles()
+    particle_cache = {}
     alive_particles = 0
 end
 
