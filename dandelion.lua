@@ -192,17 +192,18 @@ local function draw_particle(particle)
         gfx.text_ex("" .. text, adjusted_x, adjusted_y, scale, rotation, color, alpha)
     elseif particle.type == "circle" then
         local radius = compute_particle_expression(particle, config.radius or 1)
-
+        local alpha = compute_particle_expression(particle, config.alpha or 1)
         if config.outline then
             local outline = compute_particle_expression(particle, config.outline or 1)
-            gfx.circ_ex(adjusted_x, adjusted_y, radius + outline / 2, outline, color)
+            gfx.circ_ex(adjusted_x, adjusted_y, radius + outline / 2, outline, color, alpha)
         else
-            gfx.circ_fill(adjusted_x, adjusted_y, radius, color)
+            gfx.circ_fill(adjusted_x, adjusted_y, radius, color, alpha)
         end
     elseif particle.type == "triangle" then
         -- local size = self:compute(self.size)
         local size = compute_particle_expression(particle, config.size or 1)
         local rotation = compute_particle_expression(particle, config.rotation or 0)
+        local alpha = compute_particle_expression(particle, config.alpha or 1)
 
         local x = adjusted_x
         local y = adjusted_y
@@ -214,9 +215,9 @@ local function draw_particle(particle)
             y + math.cos(math.pi * (rotation + 5 / 3)) * size
 
         if config.hollow then
-            gfx.tri(x1, y1, x2, y2, x3, y3, color)
+            gfx.tri(x1, y1, x2, y2, x3, y3, color, alpha)
         else
-            gfx.tri_fill(x1, y1, x2, y2, x3, y3, color)
+            gfx.tri_fill(x1, y1, x2, y2, x3, y3, color, alpha)
         end
 
         -- if self.outline_color then
@@ -227,6 +228,7 @@ local function draw_particle(particle)
         local length = compute_particle_expression(particle, config.length or 16)
         local thickness = compute_particle_expression(particle, config.thickness or 1)
         local rotation = compute_particle_expression(particle, config.rotation or 0)
+        local alpha = compute_particle_expression(particle, config.alpha or 1)
 
         local x1, y1 = adjusted_x, adjusted_y
         local v = util.vec_from_angle(rotation, length)
@@ -236,7 +238,7 @@ local function draw_particle(particle)
             y1 -= py / 2
         end
 
-        gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color)
+        gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color, alpha)
     elseif particle.type == "rectangle" then
         local width = compute_particle_expression(particle, config.width or 16)
         local height = compute_particle_expression(particle, config.height or 16)
@@ -244,6 +246,7 @@ local function draw_particle(particle)
         local half_height = height / 2
         local rotation = compute_particle_expression(particle, config.rotation or 0.25) * math.pi
         local outline = compute_particle_expression(particle, config.outline or 1)
+        local alpha = compute_particle_expression(particle, config.alpha or 1)
 
         local x1, y1 = adjusted_x - math.cos(rotation) * (half_width + 0.5), adjusted_y - math.sin(rotation) * (half_height + 0.5)
         local x2, y2 = adjusted_x - math.cos(rotation + math.pi * 0.5) * (half_width + 0.5), adjusted_y - math.sin(rotation + math.pi * 0.5) * (half_height + 0.5)
@@ -252,19 +255,19 @@ local function draw_particle(particle)
         
         if config.rotation and config.rotation ~= 0 then
             if config.outline then
-                gfx.line_ex(x1, y1, x2, y2, outline, color)
-                gfx.line_ex(x2, y2, x3, y3, outline, color)
-                gfx.line_ex(x3, y3, x4 - 1, y4, outline, color)
-                gfx.line_ex(x4, y4, x1, y1, outline, color)
+                gfx.line_ex(x1, y1, x2, y2, outline, color, alpha)
+                gfx.line_ex(x2, y2, x3, y3, outline, color, alpha)
+                gfx.line_ex(x3, y3, x4 - 1, y4, outline, color, alpha)
+                gfx.line_ex(x4, y4, x1, y1, outline, color, alpha)
             else
-                gfx.tri_fill(x1, y1, x2, y2, x4, y4, color)
-                gfx.tri_fill(x3, y3, x2, y2, x4, y4, color)
+                gfx.tri_fill(x1, y1, x2, y2, x4, y4, color, alpha)
+                gfx.tri_fill(x3, y3, x2, y2, x4, y4, color, alpha)
             end
         else
             if config.outline then
-                gfx.rect_ex(adjusted_x - half_width, adjusted_y - half_height, width, height, outline, color)
+                gfx.rect_ex(adjusted_x - half_width, adjusted_y - half_height, width, height, outline, color, alpha)
             else
-                gfx.rect_fill(adjusted_x - half_width, adjusted_y - half_height, width, height, color)
+                gfx.rect_fill(adjusted_x - half_width, adjusted_y - half_height, width, height, color, alpha)
             end
         end
 
