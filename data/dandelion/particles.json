@@ -1,185 +1,22 @@
 [
     {
-        "name": "text",
+        "name": "test",
         "duration": 1,
-        "type": "text",
-        "color": "gfx.COLOR_GREEN",
-        "config": {
-            "text": "'TEXT'",
-            "shadow": "gfx.COLOR_DARK_GREEN",
-            "alpha": "1 - self.age / self.duration",
-            "scale": "self.age + 1",
-            "rotation": "math.sin(self.age * 16) * (1 - self.age / self.duration) * 0.04"
-        }
-    },
-    {
-        "name": "circle",
-        "duration": 1,
-        "type": "circle",
-        "color": "gfx.COLOR_GREEN",
-        "config": {
-            "radius": 10,
-            "outline": 5
-        }
-    },
-    {
-        "name": "triangle",
-        "duration": 1,
-        "type": "triangle",
-        "color": "gfx.COLOR_GREEN",
-        "config": {
-            "size": 10,
-            "rotation": "self.age",
-            "hollow": true
-        }
-    },
-    {
-        "name": "line",
-        "duration": 1,
-        "type": "line",
-        "color": "gfx.COLOR_GREEN",
-        "config": {
-            "thickness": 2,
-            "length": "64 * (1 - self.age / self.duration)",
-            "centered": true,
-            "rotation": "self.age"
-        }
-    },
-    {
-        "name": "rectangle",
-        "duration": 1,
-        "type": "rectangle",
-        "color": "gfx.COLOR_GREEN",
-        "config": {
-            "width": 16,
-            "height": 16,
-            "outline": 1,
-            "rotation": "self.age"
-        }
-    },
-    {
-        "name": "laser_line",
-        "duration": 4,
-        "type": "line",
-        "color": "gfx.COLOR_RED",
-        "config": {
-            "thickness": 32,
-            "length": 400,
-            "rotation": "self.age * 0.125"
-        }
-    },
-    {
-        "name": "laser_center",
-        "duration": 4,
-        "type": "circle",
-        "color": "gfx.COLOR_RED",
-        "config": {
-            "radius": 16
-        }
-    },
-    {
-        "name": "laser_triangle",
-        "duration": 0.4,
-        "type": "triangle",
-        "color": "gfx.COLOR_RED",
-        "config": {
-            "size": "(9 + self.random_2 * 9) * (1 - self.age / self.duration)",
-            "rotation": "self.age * 4 - (self.random_1 * 4)"
-        }
-    },
-    {
-        "name": "laser_circle",
-        "duration": 0.6,
-        "type": "circle",
-        "color": "gfx.COLOR_RED",
-        "config": {
-            "radius": "(3 + self.random_2 * 6) * (1 - self.age / self.duration)",
-            "rotation": "self.age * 4 - (self.random_1 * 4)"
-        }
-    },
-    {
-        "name": "flame",
-        "duration": 0.5,
-        "color": "self.age > 0.25 and gfx.COLOR_RED or self.age > 0.1 and gfx.COLOR_ORANGE or gfx.COLOR_YELLOW",
-        "dx": "self.age * -1 * (self.random_1 * 4 + 2)",
-        "dy": "self.age * -10",
-        "type": "triangle",
-        "config": {
-            "size": "(self.random_2 * 2 + 3) * (1 - self.age / self.duration + 0.5)",
-            "rotation": "self.age * 4 - (self.random_1 * 4)"
-        }
-    },
-    {
-        "name": "small_smoke",
-        "duration": 1.5,
-        "color": "self.random_1 > 0.5 and gfx.COLOR_DARK_GRAY or gfx.COLOR_BLACK",
-        "dx": "self.age * -1 * (self.random_1 * 4 + 2)",
-        "dy": "self.age * -10",
-        "type": "circle",
-        "config": {
-            "radius": "(self.random_1 + 2) * (1 - self.age / self.duration)"
-        }
-    },
-    {
-        "name": "burst_line",
-        "duration": 1.5,
-        "type": "line",
-        "config": {
-            "length": "(self.random_2 * 200 + 100) * (1 - (self.age ^ 2) / self.duration)",
-            "rotation": "self.random_1 * 2"
-        }
-    },
-    {
-        "name": "burst_circle",
-        "duration": 3,
-        "type": "circle",
-        "config": {
-            "radius": "1000 * self.age"
-        }
-    },
-    {
-        "name": "rain",
-        "duration": 4,
-        "type": "line",
-        "color": "gfx.COLOR_DARK_BLUE",
-        "dx": "-100 + self.age * 50",
-        "dy": "-400 + self.age * 300",
-        "config": {
-            "length": "self.random_1 * 24 + 12",
-            "rotation": "0.4"
-        }
-    },
-    {
-        "name": "dot",
-        "duration": 1,
-        "type": "circle",
-        "config": {
-            "radius": 1
-        }
-    },
-    {
-        "name": "dandelion_seed",
-        "duration": 8,
-        "type": "line",
-        "color": "gfx.COLOR_TRUE_WHITE",
-        "dx": "self.age * (emit.random_2 * 64 + 64)",
-        "dy": "math.sin(self.age) * (emit.random_2 * 8 + 8)",
-        "config": {
-            "length": 8,
-            "centered": true,
-            "rotation": "self.age * (self.random_1 * 0.125 - 0.0625) + (self.random_2 * 0.25 - 0.125)"
-        }
-    },
-    {
-        "name": "dandelion_stem",
-        "duration": 8,
-        "type": "line",
-        "color": "gfx.COLOR_DARK_GREEN",
-        "dx": "self.age * (emit.random_2 * 64 + 64)",
-        "dy": "math.sin(self.age) * (emit.random_2 * 8 + 8)",
-        "config": {
-            "length": 4,
-            "rotation": 0.5
-        }
+        "rotation": "self.age",
+        "shapes": [
+            {
+                "type": "triangle",
+                "size": 2,
+                "rotation": "self.age + 1",
+                "dx": 0,
+                "dy": 2,
+                "color": "gfx.COLOR_RED"
+            },
+            {
+                "type": "circle",
+                "radius": 2,
+                "color": "gfx.COLOR_RED"
+            }
+        ]
     }
 ]

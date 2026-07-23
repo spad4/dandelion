@@ -35,7 +35,6 @@ local function compute_particle_expression(particle, expression)
     local c, err = load("return function (self, emit) return " .. expression .. " end", "expression", "t")
     if not c then return nil end
 
-
     local ok, func = pcall(c)
     if not ok then return nil end
 
@@ -167,122 +166,122 @@ for _, emitter in pairs(load_emitters) do
 end
 
 local function draw_particle(particle)
-    if not particle.type or not particle.config then return end
+    if not particle.shapes then return end
 
-    local adjusted_x = particle.x
-    local adjusted_y = particle.y
-    adjusted_x += compute_particle_expression(particle, particle.dx or 0)
-    adjusted_y += compute_particle_expression(particle, particle.dy or 0)
-    adjusted_x += compute_particle_expression(particle, particle.mx or 0)
-    adjusted_y += compute_particle_expression(particle, particle.my or 0)
+    -- get dx
+    local center_x = particle.x
+    local center_y = particle.y
+    center_x += compute_particle_expression(particle, particle.dx or 0)
+    center_y += compute_particle_expression(particle, particle.dy or 0)
 
-    local color = compute_particle_expression(particle, particle.color or gfx.COLOR_TRUE_WHITE)
-    local config = particle.config
+    -- mx and my come from emitters: circle & line can push particles in certain
+    -- directions depending on the parameters provided to the emitter
+    center_x += compute_particle_expression(particle, particle.mx or 0)
+    center_y += compute_particle_expression(particle, particle.my or 0)
 
-    if particle.type == "text" then
-        local shadow = compute_particle_expression(particle, config.shadow)
-        local text = compute_particle_expression(particle, config.text or "'.'")
-        local alpha = compute_particle_expression(particle, config.alpha or 1)
-        local scale = compute_particle_expression(particle, config.scale or 1)
-        local rotation = compute_particle_expression(particle, config.rotation or 0) * math.pi
+    -- this is inverted so it goes clockwise instead of counterclockwise
+    local particle_rotation = compute_particle_expression(particle, particle.rotation or 0) * -math.pi
 
-        if shadow then
-            gfx.text_ex("" .. text, adjusted_x + 1, adjusted_y + 1, scale, rotation, shadow, alpha)
-        end
-        gfx.text_ex("" .. text, adjusted_x, adjusted_y, scale, rotation, color, alpha)
-    elseif particle.type == "circle" then
-        local radius = compute_particle_expression(particle, config.radius or 1)
+    for _, shape in pairs(particle.shapes) do
+        -- base shape offset
+        local offset_x = compute_particle_expression(particle, shape.dx or 0)
+        local offset_y = compute_particle_expression(particle, shape.dy or 0)
+        -- rotate offset based on particle rotation, and add to the center of the particle
+        local final_x = center_x + offset_x * math.cos(particle_rotation) - offset_y * math.sin(particle_rotation)
+        local final_y = center_y + offset_x * math.sin(particle_rotation) + offset_y * math.cos(particle_rotation)
 
-        if config.outline then
-            local outline = compute_particle_expression(particle, config.outline or 1)
-            gfx.circ_ex(adjusted_x, adjusted_y, radius + outline / 2, outline, color)
-        else
-            gfx.circ_fill(adjusted_x, adjusted_y, radius, color)
-        end
-    elseif particle.type == "triangle" then
-        -- local size = self:compute(self.size)
-        local size = compute_particle_expression(particle, config.size or 1)
-        local rotation = compute_particle_expression(particle, config.rotation or 0)
+        -- other properties shared by all shapes
+        local color = compute_particle_expression(particle, shape.color or gfx.COLOR_TRUE_WHITE)
+        local alpha = compute_particle_expression(particle, shape.alpha or 1)
 
-        local x = adjusted_x
-        local y = adjusted_y
+        if shape.type == "text" then
+            local shadow = compute_particle_expression(particle, shape.shadow)
+            local text = compute_particle_expression(particle, shape.text or "'.'")
+            local scale = compute_particle_expression(particle, shape.scale or 1)
+            local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi
 
-        local x1, y1 = x + math.sin(math.pi * (rotation + 1 / 3)) * size,
-            y + math.cos(math.pi * (rotation + 1 / 3)) * size
-        local x2, y2 = x + math.sin(math.pi * (rotation + 1)) * size, y + math.cos(math.pi * (rotation + 1)) * size
-        local x3, y3 = x + math.sin(math.pi * (rotation + 5 / 3)) * size,
-            y + math.cos(math.pi * (rotation + 5 / 3)) * size
-
-        if config.hollow then
-            gfx.tri(x1, y1, x2, y2, x3, y3, color)
-        else
-            gfx.tri_fill(x1, y1, x2, y2, x3, y3, color)
-        end
-
-        -- if self.outline_color then
-        --     local outline_color = gfx["COLOR_" .. self:compute(self.outline_color)]
-        --     gfx.tri(x1, y1, x2, y2, x3, y3, outline_color)
-        -- end
-    elseif particle.type == "line" then
-        local length = compute_particle_expression(particle, config.length or 16)
-        local thickness = compute_particle_expression(particle, config.thickness or 1)
-        local rotation = compute_particle_expression(particle, config.rotation or 0)
-
-        local x1, y1 = adjusted_x, adjusted_y
-        local v = util.vec_from_angle(rotation, length)
-        local px, py = v.x, v.y
-        if config.centered then
-            x1 -= px / 2
-            y1 -= py / 2
-        end
-
-        gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color)
-    elseif particle.type == "rectangle" then
-        local width = compute_particle_expression(particle, config.width or 16)
-        local height = compute_particle_expression(particle, config.height or 16)
-        local half_width = width / 2
-        local half_height = height / 2
-        local rotation = compute_particle_expression(particle, config.rotation or 0.25) * math.pi
-        local outline = compute_particle_expression(particle, config.outline or 1)
-
-        local x1, y1 = adjusted_x - math.cos(rotation) * (half_width + 0.5), adjusted_y - math.sin(rotation) * (half_height + 0.5)
-        local x2, y2 = adjusted_x - math.cos(rotation + math.pi * 0.5) * (half_width + 0.5), adjusted_y - math.sin(rotation + math.pi * 0.5) * (half_height + 0.5)
-        local x3, y3 = adjusted_x - math.cos(rotation + math.pi) * (half_width + 0.5), adjusted_y - math.sin(rotation + math.pi) * (half_height + 0.5)
-        local x4, y4 = adjusted_x - math.cos(rotation - math.pi * 0.5) * (half_width + 0.5), adjusted_y +-math.sin(rotation - math.pi * 0.5) * (half_height + 0.5)
-        
-        if config.rotation and config.rotation ~= 0 then
-            if config.outline then
-                gfx.line_ex(x1, y1, x2, y2, outline, color)
-                gfx.line_ex(x2, y2, x3, y3, outline, color)
-                gfx.line_ex(x3, y3, x4 - 1, y4, outline, color)
-                gfx.line_ex(x4, y4, x1, y1, outline, color)
-            else
-                gfx.tri_fill(x1, y1, x2, y2, x4, y4, color)
-                gfx.tri_fill(x3, y3, x2, y2, x4, y4, color)
+            if shadow then
+                gfx.text_ex("" .. text, final_x + 1, final_y + 1, scale, rotation, shadow, alpha)
             end
-        else
-            if config.outline then
-                gfx.rect_ex(adjusted_x - half_width, adjusted_y - half_height, width, height, outline, color)
+            gfx.text_ex("" .. text, final_x, final_y, scale, rotation, color, alpha)
+        elseif shape.type == "circle" then
+            local radius = compute_particle_expression(particle, shape.radius or 4)
+
+            if shape.outline then
+                local outline = compute_particle_expression(particle, shape.outline or 1)
+                gfx.circ_ex(final_x, final_y, radius + outline / 2, outline, color, alpha)
             else
-                gfx.rect_fill(adjusted_x - half_width, adjusted_y - half_height, width, height, color)
+                gfx.circ_fill(final_x, final_y, radius, color, alpha)
+            end
+        elseif shape.type == "triangle" then
+            -- local size = self:compute(self.size)
+            local size = compute_particle_expression(particle, shape.size or 1)
+            local rotation = compute_particle_expression(particle, shape.rotation or 0)
+
+            local x = final_x
+            local y = final_y
+
+            local x1, y1 = x + math.sin(math.pi * (rotation + 1 / 3)) * size,
+                y + math.cos(math.pi * (rotation + 1 / 3)) * size
+            local x2, y2 = x + math.sin(math.pi * (rotation + 1)) * size, y + math.cos(math.pi * (rotation + 1)) * size
+            local x3, y3 = x + math.sin(math.pi * (rotation + 5 / 3)) * size,
+                y + math.cos(math.pi * (rotation + 5 / 3)) * size
+
+            if shape.hollow then
+                gfx.tri(x1, y1, x2, y2, x3, y3, color, alpha)
+            else
+                gfx.tri_fill(x1, y1, x2, y2, x3, y3, color, alpha)
+            end
+
+            -- if self.outline_color then
+            --     local outline_color = gfx["COLOR_" .. self:compute(self.outline_color)]
+            --     gfx.tri(x1, y1, x2, y2, x3, y3, outline_color)
+            -- end
+        elseif shape.type == "line" then
+            local length = compute_particle_expression(particle, shape.length or 16)
+            local thickness = compute_particle_expression(particle, shape.thickness or 1)
+            local rotation = compute_particle_expression(particle, shape.rotation or 0)
+
+            local x1, y1 = final_x, final_y
+            local v = util.vec_from_angle(rotation, length)
+            local px, py = v.x, v.y
+            if shape.centered then
+                x1 -= px / 2
+                y1 -= py / 2
+            end
+
+            gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color, alpha)
+        elseif shape.type == "rectangle" then
+            local width = compute_particle_expression(particle, shape.width or 16)
+            local height = compute_particle_expression(particle, shape.height or 16)
+            local half_width = width / 2
+            local half_height = height / 2
+            local rotation = compute_particle_expression(particle, shape.rotation or 0.25) * math.pi
+            local outline = compute_particle_expression(particle, shape.outline or 1)
+
+            local x1, y1 = final_x - math.cos(rotation) * (half_width + 0.5), final_y - math.sin(rotation) * (half_height + 0.5)
+            local x2, y2 = final_x - math.cos(rotation + math.pi * 0.5) * (half_width + 0.5), final_y - math.sin(rotation + math.pi * 0.5) * (half_height + 0.5)
+            local x3, y3 = final_x - math.cos(rotation + math.pi) * (half_width + 0.5), final_y - math.sin(rotation + math.pi) * (half_height + 0.5)
+            local x4, y4 = final_x - math.cos(rotation - math.pi * 0.5) * (half_width + 0.5), final_y +-math.sin(rotation - math.pi * 0.5) * (half_height + 0.5)
+
+            if shape.rotation and shape.rotation ~= 0 then
+                if shape.outline then
+                    gfx.line_ex(x1, y1, x2, y2, outline, color, alpha)
+                    gfx.line_ex(x2, y2, x3, y3, outline, color, alpha)
+                    gfx.line_ex(x3, y3, x4 - 1, y4, outline, color, alpha)
+                    gfx.line_ex(x4, y4, x1, y1, outline, color, alpha)
+                else
+                    gfx.tri_fill(x1, y1, x2, y2, x4, y4, color, alpha)
+                    gfx.tri_fill(x3, y3, x2, y2, x4, y4, color, alpha)
+                end
+            else
+                if shape.outline then
+                    gfx.rect_ex(final_x - half_width, final_y - half_height, width, height, outline, color, alpha)
+                else
+                    gfx.rect_fill(final_x - half_width, final_y - half_height, width, height, color, alpha)
+                end
             end
         end
-
-
-        -- particle.x - math.sin(rotation) * width / 2
-
-
-
-
-        -- local x1, y1 = adjusted_x, adjusted_y
-        -- local px, py = math.cos(rotation * math.pi) * length, math.sin(rotation * math.pi) * length
-
-        -- if config.centered then
-        --     x1 -= px / 2
-        --     y1 -= py / 2
-        -- end
-
-        -- gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color)
     end
 end
 
@@ -326,23 +325,23 @@ local function rectangle_emitter(emitter, config, i, max)
         end
     else
         -- if distribution == "even" then
-            -- local r = width / height
-            -- local w, h = r, 1
-            -- if r > 1 then
-                -- w, h = 1, r
-            -- end
-            -- local sqrt = math.sqrt(max)
-            -- local pw = sqrt * w
-            -- local ph = sqrt * h
-            -- local px = i % pw
-            -- local py = math.floor((i - 1) / ph)
--- 
-            -- x = pw * px
-            -- y = ph * py
--- 
+        -- local r = width / height
+        -- local w, h = r, 1
+        -- if r > 1 then
+        -- w, h = 1, r
+        -- end
+        -- local sqrt = math.sqrt(max)
+        -- local pw = sqrt * w
+        -- local ph = sqrt * h
+        -- local px = i % pw
+        -- local py = math.floor((i - 1) / ph)
+        --
+        -- x = pw * px
+        -- y = ph * py
+        --
         -- else
-            x = math.random() * width - width * 0.5
-            y = math.random() * height - height * 0.5
+        x = math.random() * width - width * 0.5
+        y = math.random() * height - height * 0.5
         -- end
     end
 
@@ -546,8 +545,8 @@ for i = 1, 60 do
 end
 
 function dandelion.ClearAll()
-   dandelion.ClearEmitters()
-   dandelion.ClearParticles()
+    dandelion.ClearEmitters()
+    dandelion.ClearParticles()
 end
 
 function dandelion.ClearEmitters()

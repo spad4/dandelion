@@ -65,10 +65,6 @@ function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
   dandelion.Draw()
 
-    bold_text_with_shadow("Keep", 96, 64, gfx.COLOR_WHITE, gfx.COLOR_INDIGO)
-    bold_text_with_shadow("THEM", 156, 64, gfx.COLOR_RED, gfx.COLOR_DARK_PURPLE)
-    bold_text_with_shadow("At Bay", 116, 88, gfx.COLOR_WHITE, gfx.COLOR_INDIGO)
-
---   dandelion.Debug(dt)
---   outlined_text(emitters[State.emitter_index], 4, 170, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+  dandelion.Debug(dt)
+  outlined_text(emitters[State.emitter_index], 4, 170, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 end
