@@ -66,11 +66,14 @@ end
 
 -- register all particle types and constructor functions
 for _, particle in pairs(load_particles) do
-    -- no duplicates, first come first serve for names
-    if dandelion[string.lower(particle.name)] then goto continue end
+    particle.name = string.lower(particle.name)
+    -- NO DUPLICATES!!
+    if dandelion[particle.name] then
+        error("Error creating particle: '" .. particle.name .. "' is a duplicate and should be renamed")
+     end
 
     table.insert(particle_names, particle.name)
-    dandelion[string.lower(particle.name)] = function(x, y, vars)
+    dandelion[particle.name] = function(x, y, vars)
         -- culling prevents cache sizes from becoming ridiculous
         if not particle.no_cull and alive_particles > 3000 then return end
         local new_particle = {
@@ -116,13 +119,15 @@ for _, particle in pairs(load_particles) do
         end
         alive_particles += 1
     end
-    ::continue::
 end
 
 -- register emitters
 for _, emitter in pairs(load_emitters) do
-    -- no duplicates, first come first serve for names
-    if dandelion[string.lower(emitter.name)] then goto continue end
+    emitter.name = string.lower(emitter.name)
+    -- NO DUPLICATES!!
+    if dandelion[emitter.name] then
+        error("Error creating emitter: '" .. emitter.name .. "' is a duplicate and should be renamed")
+    end
 
     table.insert(emitter_names, emitter.name)
     dandelion[string.lower(emitter.name)] = function(x, y, vars)
@@ -162,7 +167,6 @@ for _, emitter in pairs(load_emitters) do
         end
         table.insert(emitter_cache, new_emitter)
     end
-    ::continue::
 end
 
 local function draw_particle(particle)
