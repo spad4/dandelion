@@ -197,7 +197,9 @@ local function draw_particle(particle)
         local color = compute_particle_expression(particle, shape.color or gfx.COLOR_TRUE_WHITE)
         local alpha = compute_particle_expression(particle, shape.alpha or 1)
 
-        if shape.type == "text" then
+        if shape.type == "pixel" then
+            gfx.px(final_x, final_y, color, alpha)
+        elseif shape.type == "text" then
             local shadow = compute_particle_expression(particle, shape.shadow)
             local text = compute_particle_expression(particle, shape.text or "'.'")
             local scale = compute_particle_expression(particle, shape.scale or 1)
@@ -510,7 +512,7 @@ function dandelion.Draw()
             particle_cache results in n^2 iterations in a single frame, which is potentially millions
             obviously, that's really bad for performance
             so instead we keep track of which indices can be safely replaced without overwriting a living particle
-            and prefer replacing a living particle over increasing the size of the cache
+            and prefer replacing a dead particle over increasing the size of the cache
             culling helps even more because then the size of the cache will never exceed an amount that
             would cause table.remove to majorly impact performance
         ]] --

@@ -1,14 +1,9 @@
 [
     {
-        "name": "test",
-        "duration": 1,
+        "name": "pixel",
         "shapes": [
             {
-                "type": "rectangle",
-                "width": 16,
-                "height": 8,
-                "rotation": "self.age",
-                "color": "gfx.COLOR_RED"
+                "type": "pixel"
             }
         ]
     }

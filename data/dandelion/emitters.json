@@ -1,9 +1,9 @@
 [
     {
-        "name": "test_emitter",
+        "name": "pixel_emitter",
         "particles": [
             {
-                "name": "test"
+                "name": "pixel"
             }
         ]
     }
