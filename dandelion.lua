@@ -70,7 +70,7 @@ for _, particle in pairs(load_particles) do
     -- NO DUPLICATES!!
     if dandelion[particle.name] then
         error("Error creating particle: '" .. particle.name .. "' is a duplicate and should be renamed")
-     end
+    end
 
     table.insert(particle_names, particle.name)
     dandelion[particle.name] = function(x, y, vars)
@@ -183,8 +183,7 @@ local function draw_particle(particle)
     center_x += compute_particle_expression(particle, particle.mx or 0)
     center_y += compute_particle_expression(particle, particle.my or 0)
 
-    -- this is inverted so it goes clockwise instead of counterclockwise
-    local particle_rotation = compute_particle_expression(particle, particle.rotation or 0) * -math.pi
+    local particle_rotation = compute_particle_expression(particle, particle.rotation or 0) * math.pi
 
     for _, shape in pairs(particle.shapes) do
         -- base shape offset
@@ -218,7 +217,6 @@ local function draw_particle(particle)
                 gfx.circ_fill(final_x, final_y, radius, color, alpha)
             end
         elseif shape.type == "triangle" then
-            -- local size = self:compute(self.size)
             local size = compute_particle_expression(particle, shape.size or 1)
             local rotation = compute_particle_expression(particle, shape.rotation or 0)
 
@@ -236,11 +234,6 @@ local function draw_particle(particle)
             else
                 gfx.tri_fill(x1, y1, x2, y2, x3, y3, color, alpha)
             end
-
-            -- if self.outline_color then
-            --     local outline_color = gfx["COLOR_" .. self:compute(self.outline_color)]
-            --     gfx.tri(x1, y1, x2, y2, x3, y3, outline_color)
-            -- end
         elseif shape.type == "line" then
             local length = compute_particle_expression(particle, shape.length or 16)
             local thickness = compute_particle_expression(particle, shape.thickness or 1)
@@ -263,16 +256,22 @@ local function draw_particle(particle)
             local rotation = compute_particle_expression(particle, shape.rotation or 0.25) * math.pi
             local outline = compute_particle_expression(particle, shape.outline or 1)
 
-            local x1, y1 = final_x - math.cos(rotation) * (half_width + 0.5), final_y - math.sin(rotation) * (half_height + 0.5)
-            local x2, y2 = final_x - math.cos(rotation + math.pi * 0.5) * (half_width + 0.5), final_y - math.sin(rotation + math.pi * 0.5) * (half_height + 0.5)
-            local x3, y3 = final_x - math.cos(rotation + math.pi) * (half_width + 0.5), final_y - math.sin(rotation + math.pi) * (half_height + 0.5)
-            local x4, y4 = final_x - math.cos(rotation - math.pi * 0.5) * (half_width + 0.5), final_y +-math.sin(rotation - math.pi * 0.5) * (half_height + 0.5)
+            local function rotated_corner(x, y)
+                local tx = x*math.cos(rotation) - y*math.sin(rotation)
+                local ty = x*math.sin(rotation) + y*math.cos(rotation)
+                return final_x + tx, final_y + ty
+            end
+
+            local x1, y1 = rotated_corner(-half_width, -half_height) -- top left
+            local x2, y2 = rotated_corner(half_width, -half_height) -- top right
+            local x3, y3 = rotated_corner(half_width, half_height) -- bottom right
+            local x4, y4 = rotated_corner(-half_width, half_height) -- bottom left
 
             if shape.rotation and shape.rotation ~= 0 then
                 if shape.outline then
                     gfx.line_ex(x1, y1, x2, y2, outline, color, alpha)
                     gfx.line_ex(x2, y2, x3, y3, outline, color, alpha)
-                    gfx.line_ex(x3, y3, x4 - 1, y4, outline, color, alpha)
+                    gfx.line_ex(x3, y3, x4, y4, outline, color, alpha)
                     gfx.line_ex(x4, y4, x1, y1, outline, color, alpha)
                 else
                     gfx.tri_fill(x1, y1, x2, y2, x4, y4, color, alpha)
@@ -563,13 +562,12 @@ function dandelion.ClearParticles()
 end
 
 local function outlined_text(text, x, y, color, outline)
-
-  for i = -1, 1, 1 do
-    for j = -1, 1, 1 do
-      gfx.text(text, x+i, y+j, outline)
+    for i = -1, 1, 1 do
+        for j = -1, 1, 1 do
+            gfx.text(text, x + i, y + j, outline)
+        end
     end
-  end
-  gfx.text(text, x, y, color)
+    gfx.text(text, x, y, color)
 end
 
 function dandelion.Debug(dt)

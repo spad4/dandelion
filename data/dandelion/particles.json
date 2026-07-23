@@ -2,19 +2,12 @@
     {
         "name": "test",
         "duration": 1,
-        "rotation": "self.age",
         "shapes": [
             {
-                "type": "triangle",
-                "size": 2,
-                "rotation": "self.age + 1",
-                "dx": 0,
-                "dy": 2,
-                "color": "gfx.COLOR_RED"
-            },
-            {
-                "type": "circle",
-                "radius": 2,
+                "type": "rectangle",
+                "width": 16,
+                "height": 8,
+                "rotation": "self.age",
                 "color": "gfx.COLOR_RED"
             }
         ]
