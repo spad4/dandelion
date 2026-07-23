@@ -558,6 +558,16 @@ function dandelion.ClearParticles()
     alive_particles = 0
 end
 
+local function outlined_text(text, x, y, color, outline)
+
+  for i = -1, 1, 1 do
+    for j = -1, 1, 1 do
+      gfx.text(text, x+i, y+j, outline)
+    end
+  end
+  gfx.text(text, x, y, color)
+end
+
 function dandelion.Debug(dt)
     -- stats
     outlined_text("emitters: " .. #emitter_cache, 4, 0, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)

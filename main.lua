@@ -44,7 +44,14 @@ function _update(dt)
   end
 end
 
-function outlined_text(text, x, y, color, outline)
+local function bold_text_with_shadow(text, x, y, color, shadow_color)
+    gfx.text_ex(text, x, y + 2, 2, 0, shadow_color, 1)
+    gfx.text_ex(text, x + 1, y + 2, 2, 0, shadow_color, 1)
+    gfx.text_ex(text, x, y, 2, 0, color, 1)
+    gfx.text_ex(text, x + 1, y, 2, 0, color, 1)
+end
+
+local function outlined_text(text, x, y, color, outline)
 
   for i = -1, 1, 1 do
     for j = -1, 1, 1 do
@@ -52,13 +59,6 @@ function outlined_text(text, x, y, color, outline)
     end
   end
   gfx.text(text, x, y, color)
-end
-
-local function bold_text_with_shadow(text, x, y, color, shadow_color)
-    gfx.text_ex(text, x, y + 2, 2, 0, shadow_color, 1)
-    gfx.text_ex(text, x + 1, y + 2, 2, 0, shadow_color, 1)
-    gfx.text_ex(text, x, y, 2, 0, color, 1)
-    gfx.text_ex(text, x + 1, y, 2, 0, color, 1)
 end
 
 function _draw(dt)
