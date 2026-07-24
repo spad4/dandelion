@@ -184,6 +184,7 @@ local function draw_particle(particle)
     center_y += compute_particle_expression(particle, particle.my or 0)
 
     local particle_rotation = compute_particle_expression(particle, particle.rotation or 0) * math.pi
+    local propagated_rotation = particle.rotate_shapes and particle_rotation or 0
 
     for _, shape in pairs(particle.shapes) do
         -- base shape offset
@@ -203,7 +204,7 @@ local function draw_particle(particle)
             local shadow = compute_particle_expression(particle, shape.shadow)
             local text = compute_particle_expression(particle, shape.text or "'.'")
             local scale = compute_particle_expression(particle, shape.scale or 1)
-            local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi
+            local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation
 
             if shadow then
                 gfx.text_ex("" .. text, final_x + 1, final_y + 1, scale, rotation, shadow, alpha)
@@ -220,16 +221,21 @@ local function draw_particle(particle)
             end
         elseif shape.type == "triangle" then
             local size = compute_particle_expression(particle, shape.size or 1)
-            local rotation = compute_particle_expression(particle, shape.rotation or 0)
+            local rotation = -(compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation)
 
             local x = final_x
             local y = final_y
 
-            local x1, y1 = x + math.sin(math.pi * (rotation + 1 / 3)) * size,
-                y + math.cos(math.pi * (rotation + 1 / 3)) * size
-            local x2, y2 = x + math.sin(math.pi * (rotation + 1)) * size, y + math.cos(math.pi * (rotation + 1)) * size
-            local x3, y3 = x + math.sin(math.pi * (rotation + 5 / 3)) * size,
-                y + math.cos(math.pi * (rotation + 5 / 3)) * size
+            -- could optimize this by precomputing these values
+            local x1, y1 =
+                x + math.sin(rotation + math.pi / 3) * size,
+                y + math.cos(rotation + math.pi / 3) * size
+            local x2, y2 =
+                x + math.sin(rotation + math.pi) * size,
+                y + math.cos(rotation + math.pi) * size
+            local x3, y3 =
+                x + math.sin(rotation + math.pi * 5 / 3) * size,
+                y + math.cos(rotation + math.pi * 5 / 3) * size
 
             if shape.hollow then
                 gfx.tri(x1, y1, x2, y2, x3, y3, color, alpha)
@@ -239,7 +245,7 @@ local function draw_particle(particle)
         elseif shape.type == "line" then
             local length = compute_particle_expression(particle, shape.length or 16)
             local thickness = compute_particle_expression(particle, shape.thickness or 1)
-            local rotation = compute_particle_expression(particle, shape.rotation or 0)
+            local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation
 
             local x1, y1 = final_x, final_y
             local v = util.vec_from_angle(rotation, length)
@@ -255,19 +261,19 @@ local function draw_particle(particle)
             local height = compute_particle_expression(particle, shape.height or 16)
             local half_width = width / 2
             local half_height = height / 2
-            local rotation = compute_particle_expression(particle, shape.rotation or 0.25) * math.pi
+            local rotation = compute_particle_expression(particle, shape.rotation or 0.25) * math.pi + propagated_rotation
             local outline = compute_particle_expression(particle, shape.outline or 1)
 
             local function rotated_corner(x, y)
-                local tx = x*math.cos(rotation) - y*math.sin(rotation)
-                local ty = x*math.sin(rotation) + y*math.cos(rotation)
+                local tx = x * math.cos(rotation) - y * math.sin(rotation)
+                local ty = x * math.sin(rotation) + y * math.cos(rotation)
                 return final_x + tx, final_y + ty
             end
 
             local x1, y1 = rotated_corner(-half_width, -half_height) -- top left
-            local x2, y2 = rotated_corner(half_width, -half_height) -- top right
-            local x3, y3 = rotated_corner(half_width, half_height) -- bottom right
-            local x4, y4 = rotated_corner(-half_width, half_height) -- bottom left
+            local x2, y2 = rotated_corner(half_width, -half_height)  -- top right
+            local x3, y3 = rotated_corner(half_width, half_height)   -- bottom right
+            local x4, y4 = rotated_corner(-half_width, half_height)  -- bottom left
 
             if shape.rotation and shape.rotation ~= 0 then
                 if shape.outline then

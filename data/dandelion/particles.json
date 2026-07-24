@@ -1,9 +1,16 @@
 [
     {
         "name": "pixel",
+        "duration": 2,
+        "rotation": "self.age",
+        "rotate_shapes": true,
         "shapes": [
             {
-                "type": "pixel"
+                "type": "line",
+                "length": 8,
+                "dy": 16,
+                "centered": true,
+                "color": "gfx.COLOR_BLUE"
             }
         ]
     }
