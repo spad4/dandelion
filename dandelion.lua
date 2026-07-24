@@ -206,10 +206,17 @@ local function draw_particle(particle)
             local scale = compute_particle_expression(particle, shape.scale or 1)
             local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation
 
-            if shadow then
-                gfx.text_ex("" .. text, final_x + 1, final_y + 1, scale, rotation, shadow, alpha)
+            local alignment = 0
+            if shape.align == "center" then
+                alignment = scale * usagi.measure_text(text) / 2
+            elseif shape.align == "right" then
+                alignment = scale * usagi.measure_text(text)
             end
-            gfx.text_ex("" .. text, final_x, final_y, scale, rotation, color, alpha)
+
+            if shadow then
+                gfx.text_ex("" .. text, final_x + 1 - alignment, final_y + 1, scale, rotation, shadow, alpha)
+            end
+            gfx.text_ex("" .. text, final_x - alignment, final_y, scale, rotation, color, alpha)
         elseif shape.type == "circle" then
             local radius = compute_particle_expression(particle, shape.radius or 4)
 
