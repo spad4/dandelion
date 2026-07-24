@@ -7,7 +7,8 @@
                 "type": "text",
                 "text": "'test'",
                 "scale": 2,
-                "color": "gfx.COLOR_BLUE"
+                "color": "gfx.COLOR_WHITE",
+                "shadow": "gfx.COLOR_DARK_BLUE"
             }
         ]
     }

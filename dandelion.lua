@@ -214,7 +214,7 @@ local function draw_particle(particle)
             end
 
             if shadow then
-                gfx.text_ex("" .. text, final_x + 1 - alignment, final_y + 1, scale, rotation, shadow, alpha)
+                gfx.text_ex("" .. text, final_x + scale - alignment, final_y + scale, scale, rotation, shadow, alpha)
             end
             gfx.text_ex("" .. text, final_x - alignment, final_y, scale, rotation, color, alpha)
         elseif shape.type == "circle" then
