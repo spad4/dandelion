@@ -1,7 +1,6 @@
 [
     {
-        "name": "fire",
-        "create_on_death": "smoke",
+        "name": "bubble",
         "dx": "self.age * 32",
         "duration": 2,
         "shapes": [

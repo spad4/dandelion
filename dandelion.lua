@@ -618,13 +618,21 @@ end
 ---Returns a table containing the names of all available particles.
 ---@return table
 function dandelion.Particles()
-    return particle_names
+    local to_return = {}
+    for _,v in pairs(particle_names) do
+        table.insert(to_return, v)
+    end
+    return to_return
 end
 
 ---Returns a table containing the names of all available emitters.
 ---@return table
 function dandelion.Emitters()
-    return emitter_names
+    local to_return = {}
+    for _,v in pairs(emitter_names) do
+        table.insert(to_return, v)
+    end
+    return to_return
 end
 
 ---Removes all emitters and particles
@@ -676,9 +684,9 @@ end
 ---Displays FPS average and the last 60 frames of FPS history as a bar graph in the bottom right of the screen.
 function dandelion.Debug(dt)
     -- stats
-    outlined_text("emitters: " .. #emitter_cache, 4, 0, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("emitters: " .. #emitter_cache, 6, 4, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
     -- outlined_text("particle cache: " .. #particle_caches, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    outlined_text("alive particles: " .. alive_particles, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("alive particles: " .. alive_particles, 6, 14, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 
     -- fps chart
     gfx.rect_fill(4, 110, 68, 76, gfx.COLOR_BLACK)

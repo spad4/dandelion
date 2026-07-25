@@ -3,7 +3,7 @@
         "name": "emitter",
         "particles": [
             {
-                "name": "fire"
+                "name": "bubble"
             }
         ]
     }
