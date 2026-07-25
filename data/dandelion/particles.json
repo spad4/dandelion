@@ -67,5 +67,60 @@
                 "alpha": "1 - (self.age / self.duration)"
             }
         ]
+    },
+    {
+        "name": "flame",
+        "duration": "self.random_1 * 0.5 + 0.5",
+        "dx": "self.age * -(self.random_2 * 8 + 8)",
+        "dy": "self.age * -(self.random_3 * 8 + 8)",
+        "shapes": [
+            {
+                "type": "triangle",
+                "size": "(1 - self.age / self.duration) * (self.random_4 * 4 + 4)",
+                "rotation": "self.age",
+                "color": "self.age > 0.25 and gfx.COLOR_RED or (self.age > 0.1 and gfx.COLOR_ORANGE or gfx.COLOR_YELLOW)"
+            }
+        ]
+    },
+    {
+        "name": "small_smoke",
+        "duration": "self.random_1 * 0.5 + 0.5",
+        "dx": "self.age * -(self.random_2 * 4 + 4) - 2",
+        "dy": "self.age * -(self.random_3 * 8 + 8) - 2",
+        "shapes": [
+            {
+                "type": "circle",
+                "radius": "self.random_4 * 2 + 1",
+                "rotation": "self.age",
+                "color": "self.random_1 > 0.5 and gfx.COLOR_DARK_GRAY or gfx.COLOR_LIGHT_GRAY"
+            }
+        ]
+    },
+    {
+        "name": "portal_pixel",
+        "shapes": [
+            {
+                "type": "pixel",
+                "color": "self.random_1 > 0.5 and -1 or gfx.COLOR_DARK_PURPLE",
+                "alpha": "1 - (self.age / self.duration)"
+            }
+        ]
+    },
+    {
+        "name": "damage_number",
+        "duration": 0.5,
+        "dx": "self.age * (self.random_1 * 16 + 16) * (self.random_2 > 0.5 and 1 or -1)",
+        "dy": "(self.age * (self.random_4 * 4 + 12) - 3) ^ 2 - 12",
+        "shapes": [
+            {
+                "type": "text",
+                "text": "math.floor(self.random_3 * 8 + 1)",
+                "align": "center",
+                "scale": "self.age < 0.25 and 1 or (1 - (self.age - 0.25) / (self.duration - 0.25))",
+                "alpha": "self.age < 0.25 and 1 or (1 - (self.age - 0.25) / (self.duration - 0.25))",
+                "color": "gfx.COLOR_RED",
+                "shadow": "gfx.COLOR_DARK_PURPLE"
+            }
+        ]
     }
 ]

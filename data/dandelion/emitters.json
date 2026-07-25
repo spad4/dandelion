@@ -26,5 +26,39 @@
                 "frequency": 0.25
             }
         ]
+    },
+    {
+        "name": "fire_emitter",
+        "duration": 1,
+        "particles": [
+            {
+                "name": "flame",
+                "count": 2,
+                "shape": "rectangle",
+                "frequency": 0.125
+            },
+            {
+                "name": "small_smoke",
+                "count": 2,
+                "shape": "rectangle",
+                "frequency": 0.125
+            }
+        ]
+    },
+    {
+        "name": "portal",
+        "duration": 5,
+        "particles": [
+            {
+                "name": "portal_pixel",
+                "count": 16,
+                "shape": "circle",
+                "radius": 16,
+                "outline": true,
+                "motion": 24,
+                "direction": 0.5,
+                "frequency": 0.1
+            }
+        ]
     }
 ]

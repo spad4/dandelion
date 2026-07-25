@@ -1,3 +1,5 @@
+local VALID_NAME_PATTERN = "^[a-z][a-z0-9_]+$"
+
 local dandelion = {}
 
 local load_particles = usagi.read_json("dandelion/particles.json")
@@ -69,10 +71,16 @@ end
 
 -- register all particle types and constructor functions
 for _, particle in pairs(load_particles) do
+    if not particle.name then
+        error("Particle is missing name!")
+    end
     particle.name = string.lower(particle.name)
+    if not string.match(particle.name, VALID_NAME_PATTERN) then
+        error("Particle name '" .. particle.name .. "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
+    end
     -- NO DUPLICATES!!
     if dandelion[particle.name] then
-        error("Error creating particle: '" .. particle.name .. "' is a duplicate and should be renamed")
+        error("Particle '" .. particle.name .. "' is a duplicate and should be renamed")
     end
 
     local group = particle.group or "none"
@@ -137,7 +145,13 @@ end
 
 -- register emitters
 for _, emitter in pairs(load_emitters) do
+    if not emitter.name then
+        error("Emitter is missing name!")
+    end
     emitter.name = string.lower(emitter.name)
+    if not string.match(emitter.name, VALID_NAME_PATTERN) then
+        error("Emitter name '" .. emitter.name .. "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
+    end
     -- NO DUPLICATES!!
     if dandelion[emitter.name] then
         error("Error creating emitter: '" .. emitter.name .. "' is a duplicate and should be renamed")
@@ -219,7 +233,7 @@ local function draw_particle(particle)
             gfx.px(final_x, final_y, color, alpha)
         elseif shape.type == "text" then
             local shadow = compute_particle_expression(particle, shape.shadow)
-            local text = compute_particle_expression(particle, shape.text or "'.'")
+            local text = tostring(compute_particle_expression(particle, shape.text or "'.'"))
             local scale = compute_particle_expression(particle, shape.scale or 1)
             local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation
 
@@ -478,8 +492,15 @@ local function emit_particles(emitter)
     local dy = compute_emitter_expression(emitter, emitter.dy or 0)
 
     for i, particle in pairs(emitter.particles) do
-        if not particle.name then goto continue end
-        if particle.name == emitter.name then goto continue end
+        if not particle.name then
+            error("A shape from emitter '" .. emitter.name .. "' is missing a particle name")
+        end
+        if particle.name == emitter.name then
+            error("A shape from emitter '" .. emitter.name .. "' is looping")
+        end
+        if not dandelion[particle.name] then
+            error("A shape from emitter '" .. emitter.name .. "' is trying to emit '"..particle.name.."' which does not exist")
+        end
 
         if particle.delay then
             -- delay > 0 means the particle will wait that long before emitting
@@ -619,7 +640,7 @@ end
 ---@return table
 function dandelion.Particles()
     local to_return = {}
-    for _,v in pairs(particle_names) do
+    for _, v in pairs(particle_names) do
         table.insert(to_return, v)
     end
     return to_return
@@ -629,7 +650,7 @@ end
 ---@return table
 function dandelion.Emitters()
     local to_return = {}
-    for _,v in pairs(emitter_names) do
+    for _, v in pairs(emitter_names) do
         table.insert(to_return, v)
     end
     return to_return
@@ -661,8 +682,10 @@ end
 function dandelion.ClearGroups(...)
     local groups = { ... }
     for _, group in pairs(groups) do
-        alive_particles -= #particle_caches[group]
-        particle_caches[group] = {}
+        if particle_caches[group] then
+            alive_particles -= #particle_caches[group]
+            particle_caches[group] = {}
+        end
     end
 end
 
