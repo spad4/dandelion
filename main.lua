@@ -44,13 +44,6 @@ function _update(dt)
   end
 end
 
-local function bold_text_with_shadow(text, x, y, color, shadow_color)
-    gfx.text_ex(text, x, y + 2, 2, 0, shadow_color, 1)
-    gfx.text_ex(text, x + 1, y + 2, 2, 0, shadow_color, 1)
-    gfx.text_ex(text, x, y, 2, 0, color, 1)
-    gfx.text_ex(text, x + 1, y, 2, 0, color, 1)
-end
-
 local function outlined_text(text, x, y, color, outline)
 
   for i = -1, 1, 1 do
@@ -64,8 +57,7 @@ end
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
 
-  dandelion.DrawExcept("fire")
-  dandelion.DrawGroups("fire")
+  dandelion.DrawExcept()
 
   dandelion.Debug(dt)
   outlined_text(emitters[State.emitter_index], 4, 170, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)

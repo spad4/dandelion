@@ -578,6 +578,9 @@ local function contains(table, item)
     return false
 end
 
+---Draws EVERY particle group, except the ones which match the passed names.
+---If no names are provided, draws every particle group.
+---@param ... unknown  A list of group names to ignore. 
 function dandelion.DrawExcept(...)
     if usagi.elapsed > last_emit then
         emit()
@@ -588,6 +591,9 @@ function dandelion.DrawExcept(...)
     end
 end
 
+---Draws ONLY particle groups which match the passed names.
+---If no names are provided, draws nothing.
+---@param ... unknown  A list of group names to draw.
 function dandelion.DrawGroups(...)
     if usagi.elapsed > last_emit then
         emit()
@@ -598,28 +604,30 @@ function dandelion.DrawGroups(...)
     end
 end
 
+---Returns a table containing the names of all available particles.
+---@return table
 function dandelion.Particles()
     return particle_names
 end
 
+---Returns a table containing the names of all available emitters.
+---@return table
 function dandelion.Emitters()
     return emitter_names
 end
 
-local fps_history = {}
-for i = 1, 60 do
-    fps_history[i] = 0
-end
-
+---Removes all emitters and particles
 function dandelion.ClearAll()
     dandelion.ClearEmitters()
     dandelion.ClearParticles()
 end
 
+---Removes all emitters.
 function dandelion.ClearEmitters()
     emitter_cache = {}
 end
 
+---Removes all particles.
 function dandelion.ClearParticles()
     for group, _ in pairs(particle_caches) do
         particle_caches[group] = {}
@@ -628,6 +636,9 @@ function dandelion.ClearParticles()
     alive_particles = 0
 end
 
+---Removes all particles contained within the provided groups.
+---If no groups are provided, no particles will be removed.
+---@param ... unknown A list of group names to clear particles from.
 function dandelion.ClearGroups(...)
     local groups = {...}
     for _, group in pairs(groups) do
@@ -635,7 +646,6 @@ function dandelion.ClearGroups(...)
         particle_caches[group] = {}
     end
 end
-
 
 local function outlined_text(text, x, y, color, outline)
     for i = -1, 1, 1 do
@@ -646,6 +656,13 @@ local function outlined_text(text, x, y, color, outline)
     gfx.text(text, x, y, color)
 end
 
+local fps_history = {}
+for i = 1, 60 do
+    fps_history[i] = 0
+end
+
+---Displays the number of emitters and the number of particles in the top left of the screen.
+---Displays FPS average and the last 60 frames of FPS history as a bar graph in the bottom right of the screen.
 function dandelion.Debug(dt)
     -- stats
     outlined_text("emitters: " .. #emitter_cache, 4, 0, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
