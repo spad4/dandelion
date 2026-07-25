@@ -261,7 +261,8 @@ local function draw_particle(particle)
             if outline then
                 for i = -1, 1, 1 do
                     for j = -1, 1, 1 do
-                        gfx.text_ex("" .. text, final_x - alignment + i * scale, final_y + j * scale, scale, rotation, outline, alpha)
+                        gfx.text_ex("" .. text, final_x - alignment + i * scale, final_y + j * scale, scale, rotation,
+                            outline, alpha)
                     end
                 end
             elseif shadow then

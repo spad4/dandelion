@@ -6,7 +6,7 @@ function _config()
 end
 
 local PARTICLE_NAMES = dandelion.Particles()
-for _,v in pairs(dandelion.Emitters()) do
+for _, v in pairs(dandelion.Emitters()) do
     table.insert(PARTICLE_NAMES, v)
 end
 table.sort(PARTICLE_NAMES)
@@ -44,7 +44,6 @@ end
 local next_backspace = 1
 
 function _update(dt)
-
     if input.key_pressed(input.KEY_F3) then
         Hide_UI = not Hide_UI
     end
@@ -168,7 +167,7 @@ function _draw(dt)
             for i = 1, #Search_Results do
                 local color = i == Selected_Result_Index and gfx.COLOR_GREEN or gfx.COLOR_TRUE_WHITE
                 outlined_text(Search_Results[i], text_start, results_start + 12 * (i - 1), color,
-                gfx.COLOR_BLACK)
+                    gfx.COLOR_BLACK)
             end
         end
     elseif Selected_Particle then
