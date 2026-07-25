@@ -76,16 +76,12 @@ for _, particle in pairs(load_particles) do
     end
 
     local group = particle.group or "none"
-    local group_cache = particle_caches[group]
-    if not group_cache then
-        group_cache = {}
-        particle_caches[group] = group_cache
+    if not particle_caches[group] then
+        particle_caches[group] = {}
     end
 
-    local group_open_indices = open_indices[group]
-    if not group_open_indices then
-        group_open_indices = {}
-        open_indices[group] = group_open_indices
+    if not open_indices[group] then
+        open_indices[group] = {}
     end
 
     table.insert(particle_names, particle.name)
@@ -122,8 +118,10 @@ for _, particle in pairs(load_particles) do
 
         new_particle.duration = compute_particle_expression(new_particle, new_particle.duration or 1)
 
-        if #open_indices ~= 0 then
-            local open = table.remove(open_indices[group], #open_indices[group])
+        local group_cache = particle_caches[group]
+        local group_indices = open_indices[group]
+        if #group_indices ~= 0 then
+            local open = table.remove(group_indices, #group_indices)
             if open <= #group_cache and group_cache[open].dead then
                 group_cache[open] = new_particle
             else
@@ -561,7 +559,7 @@ local function draw_particle_group(group, ignored)
             else
                 if not particle.dead then
                     particle.dead = true
-                    alive_particles -= 1
+                    alive_particles = math.max(0, alive_particles - 1)
                     -- next time a particle spawns, it will try to replace this one in the table
                     -- instead of expanding the cache
                     table.insert(open_indices[group], i)
@@ -590,7 +588,7 @@ function dandelion.DrawExcept(...)
     end
 end
 
-function dandelion.DrawGroup(...)
+function dandelion.DrawGroups(...)
     if usagi.elapsed > last_emit then
         emit()
     end
@@ -623,9 +621,21 @@ function dandelion.ClearEmitters()
 end
 
 function dandelion.ClearParticles()
-    particle_caches = {}
+    for group, _ in pairs(particle_caches) do
+        particle_caches[group] = {}
+        open_indices[group] = {}
+    end
     alive_particles = 0
 end
+
+function dandelion.ClearGroups(...)
+    local groups = {...}
+    for _, group in pairs(groups) do
+        alive_particles -= #particle_caches[group]
+        particle_caches[group] = {}
+    end
+end
+
 
 local function outlined_text(text, x, y, color, outline)
     for i = -1, 1, 1 do
