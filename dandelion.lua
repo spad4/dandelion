@@ -685,8 +685,7 @@ end
 function dandelion.Debug(dt)
     -- stats
     outlined_text("emitters: " .. #emitter_cache, 6, 4, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    -- outlined_text("particle cache: " .. #particle_caches, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    outlined_text("alive particles: " .. alive_particles, 6, 14, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("particles: " .. alive_particles, 6, 14, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 
     -- fps chart
     gfx.rect_fill(4, 110, 68, 76, gfx.COLOR_BLACK)

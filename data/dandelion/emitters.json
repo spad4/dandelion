@@ -6,7 +6,24 @@
                 "name": "bubble_burst_pixel",
                 "count": 8,
                 "shape": "circle",
-                "radius": 6
+                "radius": 6,
+                "outline": true,
+                "distribution": "even"
+            }
+        ]
+    },
+    {
+        "name": "rain_emitter",
+        "duration": 10,
+        "dy": -125,
+        "particles": [
+            {
+                "name": "raindrop",
+                "count": 8,
+                "shape": "rectangle",
+                "width": 400,
+                "height": 40,
+                "frequency": 0.25
             }
         ]
     }

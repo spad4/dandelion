@@ -19,6 +19,7 @@ function _init()
     Search_Text = ""
     Search_Results = nil
     Selected_Result_Index = 1
+    Hide_UI = false
 end
 
 local counter = 1
@@ -43,6 +44,11 @@ end
 local next_backspace = 1
 
 function _update(dt)
+
+    if input.key_pressed(input.KEY_F3) then
+        Hide_UI = not Hide_UI
+    end
+
     if input.key_pressed(input.KEY_SPACE) or input.key_pressed(input.KEY_ENTER) then
         if Search_Open then
             Search_Open = false
@@ -93,10 +99,18 @@ function _update(dt)
         end
 
         if input.key_pressed(input.KEY_UP) then
-            Selected_Result_Index = math.max(1, Selected_Result_Index - 1)
+            if Selected_Result_Index == 1 then
+                Selected_Result_Index = #Search_Results
+            else
+                Selected_Result_Index -= 1
+            end
         end
         if input.key_pressed(input.KEY_DOWN) then
-            Selected_Result_Index = math.min(#Search_Results, Selected_Result_Index + 1)
+            if Selected_Result_Index == #Search_Results then
+                Selected_Result_Index = 1
+            else
+                Selected_Result_Index += 1
+            end
         end
     else
         if input.key_pressed(input.KEY_C) then
@@ -134,6 +148,7 @@ function _draw(dt)
     gfx.clear(gfx.COLOR_BLACK)
 
     dandelion.DrawExcept()
+    if Hide_UI then return end
     dandelion.Debug(dt)
 
     local text_start = usagi.GAME_W - 102
