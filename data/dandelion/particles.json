@@ -110,16 +110,16 @@
         "name": "damage_number",
         "duration": 0.5,
         "dx": "self.age * (self.random_1 * 16 + 16) * (self.random_2 > 0.5 and 1 or -1)",
-        "dy": "(self.age * (self.random_4 * 4 + 12) - 3) ^ 2 - 12",
+        "dy": "(self.age * (self.random_3 * 4 + 12) - 3) ^ 2 - 16",
         "shapes": [
             {
                 "type": "text",
-                "text": "math.floor(self.random_3 * 8 + 1)",
+                "text": "math.floor(self.random_4 * 8 + 1)",
                 "align": "center",
                 "scale": "self.age < 0.25 and 1 or (1 - (self.age - 0.25) / (self.duration - 0.25))",
                 "alpha": "self.age < 0.25 and 1 or (1 - (self.age - 0.25) / (self.duration - 0.25))",
                 "color": "gfx.COLOR_RED",
-                "shadow": "gfx.COLOR_DARK_PURPLE"
+                "outline": "gfx.COLOR_DARK_PURPLE"
             }
         ]
     }

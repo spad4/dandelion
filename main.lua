@@ -2,7 +2,7 @@ local dandelion = require("dandelion")
 
 function _config()
     ---@type Usagi.Config
-    return { name = "Dandelion Field", pause_menu = false }
+    return { name = "Dandelion Playground", pause_menu = false }
 end
 
 local PARTICLE_NAMES = dandelion.Particles()

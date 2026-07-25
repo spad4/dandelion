@@ -76,7 +76,9 @@ for _, particle in pairs(load_particles) do
     end
     particle.name = string.lower(particle.name)
     if not string.match(particle.name, VALID_NAME_PATTERN) then
-        error("Particle name '" .. particle.name .. "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
+        error("Particle name '" ..
+            particle.name ..
+            "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
     end
     -- NO DUPLICATES!!
     if dandelion[particle.name] then
@@ -150,7 +152,9 @@ for _, emitter in pairs(load_emitters) do
     end
     emitter.name = string.lower(emitter.name)
     if not string.match(emitter.name, VALID_NAME_PATTERN) then
-        error("Emitter name '" .. emitter.name .. "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
+        error("Emitter name '" ..
+            emitter.name ..
+            "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
     end
     -- NO DUPLICATES!!
     if dandelion[emitter.name] then
@@ -197,6 +201,15 @@ for _, emitter in pairs(load_emitters) do
     end
 end
 
+local function outlined_text(text, x, y, color, outline)
+    for i = -1, 1, 1 do
+        for j = -1, 1, 1 do
+            gfx.text(text, x + i, y + j, outline)
+        end
+    end
+    gfx.text(text, x, y, color)
+end
+
 local function draw_particle(particle)
     if not particle.shapes then return end
 
@@ -233,6 +246,7 @@ local function draw_particle(particle)
             gfx.px(final_x, final_y, color, alpha)
         elseif shape.type == "text" then
             local shadow = compute_particle_expression(particle, shape.shadow)
+            local outline = compute_particle_expression(particle, shape.outline)
             local text = tostring(compute_particle_expression(particle, shape.text or "'.'"))
             local scale = compute_particle_expression(particle, shape.scale or 1)
             local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation
@@ -244,9 +258,17 @@ local function draw_particle(particle)
                 alignment = scale * usagi.measure_text(text)
             end
 
-            if shadow then
+            if outline then
+                for i = -1, 1, 1 do
+                    for j = -1, 1, 1 do
+                        gfx.text_ex("" .. text, final_x - alignment + i * scale, final_y + j * scale, scale, rotation, outline, alpha)
+                    end
+                end
+            elseif shadow then
                 gfx.text_ex("" .. text, final_x + scale - alignment, final_y + scale, scale, rotation, shadow, alpha)
             end
+
+
             gfx.text_ex("" .. text, final_x - alignment, final_y, scale, rotation, color, alpha)
         elseif shape.type == "circle" then
             local radius = compute_particle_expression(particle, shape.radius or 4)
@@ -499,7 +521,8 @@ local function emit_particles(emitter)
             error("A shape from emitter '" .. emitter.name .. "' is looping")
         end
         if not dandelion[particle.name] then
-            error("A shape from emitter '" .. emitter.name .. "' is trying to emit '"..particle.name.."' which does not exist")
+            error("A shape from emitter '" ..
+                emitter.name .. "' is trying to emit '" .. particle.name .. "' which does not exist")
         end
 
         if particle.delay then
@@ -687,15 +710,6 @@ function dandelion.ClearGroups(...)
             particle_caches[group] = {}
         end
     end
-end
-
-local function outlined_text(text, x, y, color, outline)
-    for i = -1, 1, 1 do
-        for j = -1, 1, 1 do
-            gfx.text(text, x + i, y + j, outline)
-        end
-    end
-    gfx.text(text, x, y, color)
 end
 
 local fps_history = {}
