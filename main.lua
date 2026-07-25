@@ -146,6 +146,13 @@ end
 function _draw(dt)
     gfx.clear(gfx.COLOR_BLACK)
 
+    -- local text = "DANDELION"
+    -- local sx, sy = usagi.measure_text(text)
+    -- local x = usagi.GAME_W / 2 - sx * 2
+    -- local y = usagi.GAME_H / 2 - sy * 2
+    -- gfx.text_ex(text, x+2, y, 4, 0, gfx.COLOR_ORANGE, 1)
+    -- gfx.text_ex(text, x, y, 4, 0, gfx.COLOR_YELLOW, 1)
+
     dandelion.DrawExcept()
     if Hide_UI then return end
     dandelion.Debug(dt)

@@ -60,5 +60,18 @@
                 "frequency": 0.1
             }
         ]
+    },
+    {
+        "name": "dandelion_emitter",
+        "duration": 3,
+        "particles": [
+            {
+                "name": "dandelion",
+                "count": 4,
+                "shape": "rectangle",
+                "height": 64,
+                "frequency": 0.33
+            }
+        ]
     }
 ]
