@@ -43,13 +43,15 @@ end
 local next_backspace = 1
 
 function _update(dt)
-    if input.key_pressed(input.KEY_ENTER) then
+    if input.key_pressed(input.KEY_SPACE) or input.key_pressed(input.KEY_ENTER) then
         if Search_Open then
             Search_Open = false
             Selected_Particle = Search_Results[Selected_Result_Index]
         else
             Search_Open = true
             Selected_Result_Index = 1
+            Search_Text = ""
+            Search_Results = nil
         end
     end
 
@@ -87,7 +89,7 @@ function _update(dt)
                 end
                 i += 1
             end
-            Selected_Result_Index = math.min(#Search_Results, Selected_Result_Index)
+            Selected_Result_Index = util.clamp(Selected_Result_Index, 1, #Search_Results)
         end
 
         if input.key_pressed(input.KEY_UP) then

@@ -1,9 +1,12 @@
 [
     {
-        "name": "emitter",
+        "name": "bubble_burst",
         "particles": [
             {
-                "name": "bubble"
+                "name": "bubble_burst_pixel",
+                "count": 8,
+                "shape": "circle",
+                "radius": 6
             }
         ]
     }

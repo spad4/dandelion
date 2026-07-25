@@ -1,27 +1,35 @@
 [
     {
         "name": "bubble",
-        "dx": "self.age * 32",
-        "duration": 2,
+        "duration": "self.random_1 * 2 + 1",
+        "dy": "self.age * -(self.random_3 * 4 + 4)",
+        "create_on_death": "bubble_burst",
         "shapes": [
             {
-                "type": "triangle",
-                "size": 7,
+                "type": "circle",
+                "radius": "math.floor(self.random_2 * 2) + 2",
                 "rotation": "self.age",
-                "color": "gfx.COLOR_RED"
+                "outline": 1,
+                "color": "gfx.COLOR_BLUE"
+            },
+            {
+                "type": "pixel",
+                "dx": "-math.floor(self.random_2 * 2) - 1",
+                "dy": "-math.floor(self.random_2 * 2) - 1",
+                "color": "gfx.COLOR_WHITE"
             }
         ]
     },
     {
-        "name": "smoke",
-        "dx": "self.age * 32",
-        "duration": 2,
+        "name": "bubble_burst_pixel",
+        "duration": "self.random_1 * 0.25 + 0.25",
+        "dx": "self.age * 24 * (self.random_2 * 2 - 1)",
+        "dy": "(((self.age - 0.5) * 4) ^ 2) - 4",
         "shapes": [
             {
-                "type": "triangle",
-                "size": 7,
-                "rotation": "self.age",
-                "color": "gfx.COLOR_LIGHT_GRAY"
+                "type": "pixel",
+                "color": "gfx.COLOR_BLUE",
+                "alpha": "1 - (self.age / self.duration)"
             }
         ]
     }

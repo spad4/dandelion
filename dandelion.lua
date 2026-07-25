@@ -489,7 +489,7 @@ local function emit_particles(emitter)
         end
 
         local shape_function = function(_, _, _, _) return 0, 0 end
-        if emitter_shape_function[particle.shape] and particle.config then
+        if emitter_shape_function[particle.shape] then
             shape_function = emitter_shape_function[particle.shape]
         end
 
@@ -503,7 +503,7 @@ local function emit_particles(emitter)
             for j = 1, count do
                 -- mx, my are optional values returned by shape functions that impact
                 -- the motion of particles spawned by the emitter
-                local sx, sy, mx, my = shape_function(emitter, particle.config, j, count)
+                local sx, sy, mx, my = shape_function(emitter, particle, j, count)
                 local vars = particle.overrides or {}
                 if mx then vars.mx = mx end
                 if my then vars.my = my end
