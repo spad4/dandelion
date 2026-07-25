@@ -1,21 +1,9 @@
 [
     {
-        "name": "pixel_emitter",
+        "name": "emitter",
         "particles": [
             {
-                "name": "pixel"
-            },
-            {
-                "name": "fire",
-                "count": 5,
-                "frequency": 0.05,
-                "shape": "circle",
-                "config": {
-                    "radius": "(self.age > 0.5 and (1 - self.age) or self.age) * 128",
-                    "distribution": "even",
-                    "outline": true,
-                    "rotation": "self.age * 0.25"
-                }
+                "name": "fire"
             }
         ]
     }

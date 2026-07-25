@@ -197,6 +197,9 @@ local function draw_particle(particle)
     center_x += compute_particle_expression(particle, particle.mx or 0)
     center_y += compute_particle_expression(particle, particle.my or 0)
 
+    -- these are used for when the particle dies and needs to spawn a new particle
+    particle.prev_x, particle.prev_y = center_x, center_y
+
     local particle_rotation = compute_particle_expression(particle, particle.rotation or 0) * math.pi
     local propagated_rotation = particle.rotate_shapes and particle_rotation or 0
 
@@ -553,7 +556,12 @@ local function draw_particle_group(group, ignored)
         ]] --
         if particle.dead or usagi.elapsed - particle.born > particle.duration then
             if remove_budget > 0 then
-                if not particle.dead then alive_particles = alive_particles - 1 end
+                if not particle.dead then
+                    alive_particles = alive_particles - 1
+                    if particle.create_on_death and dandelion[particle.create_on_death] then
+                        dandelion[particle.create_on_death](particle.prev_x, particle.prev_y, particle.vars)
+                    end
+                end
                 table.remove(group_cache, i)
                 remove_budget -= 1
             else
@@ -563,6 +571,9 @@ local function draw_particle_group(group, ignored)
                     -- next time a particle spawns, it will try to replace this one in the table
                     -- instead of expanding the cache
                     table.insert(open_indices[group], i)
+                    if particle.create_on_death and dandelion[particle.create_on_death] then
+                        dandelion[particle.create_on_death](particle.prev_x, particle.prev_y, particle.vars)
+                    end
                 end
             end
         elseif not ignored then
@@ -580,7 +591,7 @@ end
 
 ---Draws EVERY particle group, except the ones which match the passed names.
 ---If no names are provided, draws every particle group.
----@param ... unknown  A list of group names to ignore. 
+---@param ... unknown  A list of group names to ignore.
 function dandelion.DrawExcept(...)
     if usagi.elapsed > last_emit then
         emit()
@@ -640,7 +651,7 @@ end
 ---If no groups are provided, no particles will be removed.
 ---@param ... unknown A list of group names to clear particles from.
 function dandelion.ClearGroups(...)
-    local groups = {...}
+    local groups = { ... }
     for _, group in pairs(groups) do
         alive_particles -= #particle_caches[group]
         particle_caches[group] = {}
