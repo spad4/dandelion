@@ -63,7 +63,9 @@ end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  dandelion.Draw()
+
+  dandelion.DrawExcept("fire")
+  dandelion.DrawGroup("fire")
 
   dandelion.Debug(dt)
   outlined_text(emitters[State.emitter_index], 4, 170, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)

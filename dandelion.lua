@@ -7,7 +7,7 @@ local particle_names = {}
 local emitter_names = {}
 
 -- runtime cache of particles and emitters
-local particle_cache = {}
+local particle_caches = {}
 local emitter_cache = {}
 
 local alive_particles = 0
@@ -18,6 +18,9 @@ local open_indices = {}
 
 -- cache of chunks returned by properties so new functions aren't created every time a chunk is read
 local chunk_cache = {}
+
+-- last time particles were emitted; prevents multiple emissions per frame
+local last_emit = 0
 
 local function compute_particle_expression(particle, expression)
     if type(expression) ~= "string" then
@@ -72,6 +75,19 @@ for _, particle in pairs(load_particles) do
         error("Error creating particle: '" .. particle.name .. "' is a duplicate and should be renamed")
     end
 
+    local group = particle.group or "none"
+    local group_cache = particle_caches[group]
+    if not group_cache then
+        group_cache = {}
+        particle_caches[group] = group_cache
+    end
+
+    local group_open_indices = open_indices[group]
+    if not group_open_indices then
+        group_open_indices = {}
+        open_indices[group] = group_open_indices
+    end
+
     table.insert(particle_names, particle.name)
     dandelion[particle.name] = function(x, y, vars)
         -- culling prevents cache sizes from becoming ridiculous
@@ -107,15 +123,15 @@ for _, particle in pairs(load_particles) do
         new_particle.duration = compute_particle_expression(new_particle, new_particle.duration or 1)
 
         if #open_indices ~= 0 then
-            local open = table.remove(open_indices, #open_indices)
-            if open <= #particle_cache and particle_cache[open].dead then
-                particle_cache[open] = new_particle
+            local open = table.remove(open_indices[group], #open_indices[group])
+            if open <= #group_cache and group_cache[open].dead then
+                group_cache[open] = new_particle
             else
-                table.insert(particle_cache, new_particle)
+                table.insert(group_cache, new_particle)
             end
             -- end
         else
-            table.insert(particle_cache, new_particle)
+            table.insert(group_cache, new_particle)
         end
         alive_particles += 1
     end
@@ -268,7 +284,8 @@ local function draw_particle(particle)
             local height = compute_particle_expression(particle, shape.height or 16)
             local half_width = width / 2
             local half_height = height / 2
-            local rotation = compute_particle_expression(particle, shape.rotation or 0.25) * math.pi + propagated_rotation
+            local rotation = compute_particle_expression(particle, shape.rotation or 0.25) * math.pi +
+                propagated_rotation
             local outline = compute_particle_expression(particle, shape.outline or 1)
 
             local function rotated_corner(x, y)
@@ -497,7 +514,8 @@ local function emit_particles(emitter)
     end
 end
 
-function dandelion.Draw()
+local function emit()
+    last_emit = usagi.elapsed
     -- these hopefully don't need optimized removal, but it can be added later if necessary
     for i = #emitter_cache, 1, -1 do
         local emitter = emitter_cache[i]
@@ -509,13 +527,19 @@ function dandelion.Draw()
             emit_particles(emitter)
         end
     end
+end
+
+local function draw_particle_group(group, ignored)
+    local group_cache = particle_caches[group]
+    if not group_cache then return end
+    ignored = ignored or false
 
     -- remove at most 1% of the total number of particles each frame
-    local remove_budget = #particle_cache * 0.01
+    local remove_budget = #group_cache * 0.01
 
     -- start at the end of the list so remove operations don't make i skip a value
-    for i = #particle_cache, 1, -1 do
-        local particle = particle_cache[i]
+    for i = #group_cache, 1, -1 do
+        local particle = group_cache[i]
         --[[
             why replace instead of remove?
             in lua, removing an item from the middle of the table shifts all items to the right of it
@@ -532,7 +556,7 @@ function dandelion.Draw()
         if particle.dead or usagi.elapsed - particle.born > particle.duration then
             if remove_budget > 0 then
                 if not particle.dead then alive_particles = alive_particles - 1 end
-                table.remove(particle_cache, i)
+                table.remove(group_cache, i)
                 remove_budget -= 1
             else
                 if not particle.dead then
@@ -540,12 +564,39 @@ function dandelion.Draw()
                     alive_particles -= 1
                     -- next time a particle spawns, it will try to replace this one in the table
                     -- instead of expanding the cache
-                    table.insert(open_indices, i)
+                    table.insert(open_indices[group], i)
                 end
             end
-        else
+        elseif not ignored then
             draw_particle(particle)
         end
+    end
+end
+
+local function contains(table, item)
+    for _, v in pairs(table) do
+        if v == item then return true end
+    end
+    return false
+end
+
+function dandelion.DrawExcept(...)
+    if usagi.elapsed > last_emit then
+        emit()
+    end
+    local ignored_groups = { ... }
+    for group, _ in pairs(particle_caches) do
+        draw_particle_group(group, contains(ignored_groups, group))
+    end
+end
+
+function dandelion.DrawGroup(...)
+    if usagi.elapsed > last_emit then
+        emit()
+    end
+    local included_groups = { ... }
+    for group, _ in pairs(particle_caches) do
+        draw_particle_group(group, not contains(included_groups, group))
     end
 end
 
@@ -572,7 +623,7 @@ function dandelion.ClearEmitters()
 end
 
 function dandelion.ClearParticles()
-    particle_cache = {}
+    particle_caches = {}
     alive_particles = 0
 end
 
@@ -588,8 +639,8 @@ end
 function dandelion.Debug(dt)
     -- stats
     outlined_text("emitters: " .. #emitter_cache, 4, 0, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    outlined_text("particle cache: " .. #particle_cache, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
-    outlined_text("alive particles: " .. alive_particles, 4, 20, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    -- outlined_text("particle cache: " .. #particle_caches, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
+    outlined_text("alive particles: " .. alive_particles, 4, 10, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
 
     -- fps chart
     gfx.rect_fill(4, 110, 68, 76, gfx.COLOR_BLACK)

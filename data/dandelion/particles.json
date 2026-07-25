@@ -1,7 +1,7 @@
 [
     {
         "name": "pixel",
-        "duration": 2,
+        "duration": 1,
         "shapes": [
             {
                 "type": "text",
@@ -9,6 +9,19 @@
                 "scale": 2,
                 "color": "gfx.COLOR_WHITE",
                 "shadow": "gfx.COLOR_DARK_BLUE"
+            }
+        ]
+    },
+    {
+        "name": "fire",
+        "group": "fire",
+        "duration": 1,
+        "shapes": [
+            {
+                "type": "triangle",
+                "size": 7,
+                "rotation": "self.age",
+                "color": "gfx.COLOR_RED"
             }
         ]
     }
