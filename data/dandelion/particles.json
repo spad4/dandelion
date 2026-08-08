@@ -1,5 +1,47 @@
 [
     {
+        "name": "laser_core",
+        "duration": 4,
+        "shapes": [
+            {
+                "type": "circle",
+                "radius": 16,
+                "color": "gfx.COLOR_RED"
+            },
+            {
+                "type": "line",
+                "thickness": 32,
+                "length": 500,
+                "color": "gfx.COLOR_RED",
+                "rotation": "self.age * 0.125"
+            }
+        ]
+    },
+    {
+        "name": "laser_triangle",
+        "duration": 0.4,
+        "shapes": [
+            {
+                "type": "triangle",
+                "color": "gfx.COLOR_RED",
+                "size": "(9 + self.random_2 * 9) * (1 - self.age / self.duration)",
+                "rotation": "self.age * 4 - (self.random_1 * 4)"
+            }
+        ]
+    },
+    {
+        "name": "laser_circle",
+        "duration": 0.6,
+        "shapes": [
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_RED",
+                "radius": "(3 + self.random_2 * 6) * (1 - self.age / self.duration)",
+                "rotation": "self.age * 4 - (self.random_1 * 4)"
+            }
+        ]
+    },
+    {
         "name": "bubble",
         "duration": "self.random_1 * 2 + 1",
         "dy": "self.age * -(self.random_3 * 4 + 4)",
@@ -77,7 +119,7 @@
             {
                 "type": "triangle",
                 "size": "(1 - self.age / self.duration) * (self.random_4 * 4 + 4)",
-                "rotation": "self.age",
+                "rotation": "self.age + self.random_1",
                 "color": "self.age > 0.25 and gfx.COLOR_RED or (self.age > 0.1 and gfx.COLOR_ORANGE or gfx.COLOR_YELLOW)"
             }
         ]
@@ -117,7 +159,6 @@
                 "text": "math.floor(self.random_4 * 9 + 1)",
                 "align": "center",
                 "scale": "self.age < 0.25 and 1 or (1 - (self.age - 0.25) / (self.duration - 0.25))",
-                "alpha": "self.age < 0.25 and 1 or (1 - (self.age - 0.25) / (self.duration - 0.25))",
                 "color": "gfx.COLOR_RED",
                 "outline": "gfx.COLOR_DARK_PURPLE"
             }

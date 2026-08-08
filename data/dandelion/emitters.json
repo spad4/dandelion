@@ -1,5 +1,51 @@
 [
     {
+        "name": "laser_emitter",
+        "duration": 4,
+        "particles": [
+            {
+                "name": "laser_core",
+                "frequency": 10
+            },
+            {
+                "name": "laser_triangle",
+                "shape": "line",
+                "count": 16,
+                "frequency": 0.1,
+                "length": 200,
+                "thickness": 2,
+                "motion": 128,
+                "rotation": "self.age * 0.125"
+            },
+            {
+                "name": "laser_circle",
+                "shape": "line",
+                "count": 16,
+                "frequency": 0.1,
+                "length": 200,
+                "thickness": 2,
+                "motion": 128,
+                "rotation": "self.age * 0.125"
+            }
+        ]
+    },
+    {
+        "name": "fire_flower",
+        "duration": 1,
+        "particles": [
+            {
+                "name": "flame",
+                "count": 5,
+                "shape": "circle",
+                "frequency": 0.025,
+                "radius": "math.sin(self.age * math.pi) * 64",
+                "rotation": "self.age * 0.25",
+                "outline": true,
+                "distribution": "even"
+            }
+        ]
+    },
+    {
         "name": "bubble_burst",
         "particles": [
             {
