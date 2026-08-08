@@ -43,6 +43,8 @@ end
 
 local next_backspace = 1
 
+local last_spawned = nil
+
 function _update(dt)
     if input.key_pressed(input.KEY_F3) then
         Hide_UI = not Hide_UI
@@ -115,16 +117,21 @@ function _update(dt)
         if input.key_pressed(input.KEY_C) then
             dandelion.ClearAll()
         end
+        if input.key_pressed(input.KEY_K) then
+            dandelion.Kill(last_spawned)
+        end
     end
 
+    local mx, my = input.mouse()
+
     if input.mouse_pressed(input.MOUSE_LEFT) and Selected_Particle then
-        dandelion.Spawn(Selected_Particle,input.mouse())
+        last_spawned = dandelion.Spawn(Selected_Particle, mx, my)
     end
 
     if input.mouse_held(input.MOUSE_RIGHT) and Selected_Particle then
         counter += 1
         if counter > 1 then
-            dandelion[Selected_Particle](input.mouse())
+            dandelion.Spawn(Selected_Particle, mx, my)
             counter = 0
         end
     end

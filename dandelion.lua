@@ -1,6 +1,5 @@
 local VALID_NAME_PATTERN = "^[a-z][a-z0-9_]+$"
 
-local dandelion = {}
 local spawners = {}
 
 local load_particles = usagi.read_json("dandelion/particles.json")
@@ -139,6 +138,7 @@ for _, particle in pairs(load_particles) do
             table.insert(group_cache, new_particle)
         end
         alive_particles += 1
+        return new_particle
     end
 end
 
@@ -195,6 +195,7 @@ for _, emitter in pairs(load_emitters) do
             end
         end
         table.insert(emitter_cache, new_emitter)
+        return new_emitter
     end
 end
 
@@ -518,7 +519,7 @@ local function emit_particles(emitter)
         if particle.name == emitter.name then
             error("A shape from emitter '" .. emitter.name .. "' is looping")
         end
-        if not dandelion[particle.name] then
+        if not spawners[particle.name] then
             error("A shape from emitter '" ..
                 emitter.name .. "' is trying to emit '" .. particle.name .. "' which does not exist")
         end
@@ -550,7 +551,7 @@ local function emit_particles(emitter)
                 if mx then vars.mx = mx end
                 if my then vars.my = my end
                 vars.emitter = emitter
-                dandelion[string.lower(particle.name)](emitter.x + dx + sx, emitter.y + dy + sy, vars)
+                spawners[string.lower(particle.name)](emitter.x + dx + sx, emitter.y + dy + sy, vars)
             end
         end
         ::continue::
@@ -562,9 +563,7 @@ local function emit()
     -- these hopefully don't need optimized removal, but it can be added later if necessary
     for i = #emitter_cache, 1, -1 do
         local emitter = emitter_cache[i]
-        local age = usagi.elapsed - emitter.born
-
-        if age > emitter.duration then
+        if emitter.killed or usagi.elapsed - emitter.born > emitter.duration then
             table.remove(emitter_cache, i)
         else
             emit_particles(emitter)
@@ -596,25 +595,24 @@ local function draw_particle_group(group, ignored)
             culling helps even more because then the size of the cache will never exceed an amount that
             would cause table.remove to majorly impact performance
         ]] --
-        if particle.dead or usagi.elapsed - particle.born > particle.duration then
+        if particle.dead or particle.killed or usagi.elapsed - particle.born > particle.duration then
             if remove_budget > 0 then
                 if not particle.dead then
                     alive_particles = alive_particles - 1
-                    if particle.create_on_death and dandelion[particle.create_on_death] then
-                        dandelion[particle.create_on_death](particle.prev_x, particle.prev_y, particle.vars)
+                    if particle.create_on_death and spawners[particle.create_on_death] then
+                        spawners[particle.create_on_death](particle.prev_x, particle.prev_y, particle.vars)
                     end
                 end
                 table.remove(group_cache, i)
                 remove_budget -= 1
-            else
-                if not particle.dead then
+            else if not particle.dead then
                     particle.dead = true
                     alive_particles = math.max(0, alive_particles - 1)
                     -- next time a particle spawns, it will try to replace this one in the table
                     -- instead of expanding the cache
                     table.insert(open_indices[group], i)
-                    if particle.create_on_death and dandelion[particle.create_on_death] then
-                        dandelion[particle.create_on_death](particle.prev_x, particle.prev_y, particle.vars)
+                    if particle.create_on_death and spawners[particle.create_on_death] then
+                        spawners[particle.create_on_death](particle.prev_x, particle.prev_y, particle.vars)
                     end
                 end
             end
@@ -631,17 +629,30 @@ local function contains(table, item)
     return false
 end
 
+--[[ ###########################
+      USER FACING API FUNCTIONS
+     ########################### ]]
+
+local dandelion = {}
+
 ---Creates a particle or emitter at the provided screen coordinates.
 ---@param name string                   the name of the particle or emitter
 ---@param x number                      x screen coordinate
 ---@param y number                      y screen coordinate
 ---@param vars? table                   optional overrides for the object; see particle/emitter cheat sheets
----@param adjustment_function? function optional function which returns x,y coordinates; called each frame to adjust the particle's position. useful for games with cameras
-function dandelion.Spawn(name, x, y, vars, adjustment_function)
+---@return table table                  a reference to the object created; pass to dandelion.Kill() to immediately remove
+function dandelion.Spawn(name, x, y, vars)
     if not name or not x or not y then
-        error("dandelion.Spawn is missing the particle name, x, or y coordinate")
+        error("dandelion.Spawn is missing name, x, or y")
     end
-    dandelion[name](x, y, vars, adjustment_function)
+    return spawners[name](x, y, vars)
+end
+
+---Immediately removes the passed particle or emitter.
+---@param reference table a reference to the particle or emitter to kill
+function dandelion.Kill(reference)
+    if not reference then return end
+    reference.killed = true
 end
 
 ---Draws EVERY particle group, except the ones which match the passed names.
