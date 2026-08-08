@@ -10,7 +10,7 @@ Import the module:
 dandelion = require("dandelion")
 ```
 
-Call `dandelion.Draw` anywhere in your `_draw` loop:
+Call `dandelion.DrawExcept` anywhere in your `_draw` loop:
 ```lua
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
