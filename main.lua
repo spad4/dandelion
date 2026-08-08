@@ -118,7 +118,7 @@ function _update(dt)
     end
 
     if input.mouse_pressed(input.MOUSE_LEFT) and Selected_Particle then
-        dandelion[Selected_Particle](input.mouse())
+        dandelion.Spawn(Selected_Particle,input.mouse())
     end
 
     if input.mouse_held(input.MOUSE_RIGHT) and Selected_Particle then

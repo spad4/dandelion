@@ -35,12 +35,16 @@
                 "name": "flame",
                 "count": 2,
                 "shape": "rectangle",
+                "width": 8,
+                "height": 8,
                 "frequency": 0.125
             },
             {
                 "name": "small_smoke",
                 "count": 2,
                 "shape": "rectangle",
+                "width": 8,
+                "height": 8,
                 "frequency": 0.125
             }
         ]
@@ -51,7 +55,7 @@
         "particles": [
             {
                 "name": "portal_pixel",
-                "count": 16,
+                "count": 32,
                 "shape": "circle",
                 "radius": 16,
                 "outline": true,

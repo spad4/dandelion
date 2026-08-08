@@ -1,6 +1,7 @@
 local VALID_NAME_PATTERN = "^[a-z][a-z0-9_]+$"
 
 local dandelion = {}
+local spawners = {}
 
 local load_particles = usagi.read_json("dandelion/particles.json")
 local load_emitters = usagi.read_json("dandelion/emitters.json")
@@ -81,7 +82,7 @@ for _, particle in pairs(load_particles) do
             "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
     end
     -- NO DUPLICATES!!
-    if dandelion[particle.name] then
+    if spawners[particle.name] then
         error("Particle '" .. particle.name .. "' is a duplicate and should be renamed")
     end
 
@@ -95,7 +96,7 @@ for _, particle in pairs(load_particles) do
     end
 
     table.insert(particle_names, particle.name)
-    dandelion[particle.name] = function(x, y, vars)
+    spawners[particle.name] = function(x, y, vars)
         -- culling prevents cache sizes from becoming ridiculous
         if not particle.no_cull and alive_particles > 3000 then return end
         local new_particle = {
@@ -104,11 +105,7 @@ for _, particle in pairs(load_particles) do
             born = usagi.elapsed
         }
 
-        -- assign all properties from json
-        -- TODO: this could probably be a reference to a table
-        for k, v in pairs(particle) do
-            new_particle[k] = v
-        end
+        setmetatable(new_particle, { __index = particle })
 
         if vars then
             for k, v in pairs(vars) do
@@ -157,12 +154,12 @@ for _, emitter in pairs(load_emitters) do
             "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
     end
     -- NO DUPLICATES!!
-    if dandelion[emitter.name] then
+    if spawners[emitter.name] then
         error("Error creating emitter: '" .. emitter.name .. "' is a duplicate and should be renamed")
     end
 
     table.insert(emitter_names, emitter.name)
-    dandelion[string.lower(emitter.name)] = function(x, y, vars)
+    spawners[string.lower(emitter.name)] = function(x, y, vars)
         local new_emitter = {
             x = x,
             y = y,
@@ -634,6 +631,19 @@ local function contains(table, item)
     return false
 end
 
+---Creates a particle or emitter at the provided screen coordinates.
+---@param name string                   the name of the particle or emitter
+---@param x number                      x screen coordinate
+---@param y number                      y screen coordinate
+---@param vars? table                   optional overrides for the object; see particle/emitter cheat sheets
+---@param adjustment_function? function optional function which returns x,y coordinates; called each frame to adjust the particle's position. useful for games with cameras
+function dandelion.Spawn(name, x, y, vars, adjustment_function)
+    if not name or not x or not y then
+        error("dandelion.Spawn is missing the particle name, x, or y coordinate")
+    end
+    dandelion[name](x, y, vars, adjustment_function)
+end
+
 ---Draws EVERY particle group, except the ones which match the passed names.
 ---If no names are provided, draws every particle group.
 ---@param ... unknown  A list of group names to ignore.
@@ -720,6 +730,7 @@ end
 
 ---Displays the number of emitters and the number of particles in the top left of the screen.
 ---Displays FPS average and the last 60 frames of FPS history as a bar graph in the bottom right of the screen.
+---@param dt number dt is required for FPS calculations
 function dandelion.Debug(dt)
     -- stats
     outlined_text("emitters: " .. #emitter_cache, 6, 4, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
