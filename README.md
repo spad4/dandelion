@@ -37,6 +37,6 @@ To create a new particle, add an object entry to `dandelion/particles.json`. To 
 ## Examples
 ![](https://github.com/spad4/dandelion/blob/main/assets/readme_examples/fire_flower.gif?raw=true)
 ![](https://github.com/spad4/dandelion/blob/main/assets/readme_examples/laser.gif?raw=true)
-![](https://github.com/spad4/dandelion/blob/main/assets/readme_examples/rain.gif?raw=true)
+![](https://github.com/spad4/dandelion/blob/main/assets/readme_examples/rain_emitter.gif?raw=true)
 ![](https://github.com/spad4/dandelion/blob/main/assets/readme_examples/portals.gif?raw=true)
 ![](https://github.com/spad4/dandelion/blob/main/assets/readme_examples/damage_numbers.gif?raw=true)
