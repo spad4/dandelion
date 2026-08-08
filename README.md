@@ -14,22 +14,25 @@ Call `dandelion.Draw` anywhere in your `_draw` loop:
 ```lua
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  dandelion.Draw()
+  dandelion.DrawExcept()
 end
 ```
 
-To spawn a particle, call `dandelion.<particle_name>(x, y)`. An example which spawns a particle at your cursor:
+To spawn a particle, call `dandelion.Spawn(<particle_name>, x, y)`. An example which spawns a particle at your cursor:
 
 ```lua
 function _update(dt)
   if input.mouse_pressed(input.MOUSE_LEFT) then
-    dandelion.dandelion(input.mouse())
+    dandelion.Spawn("dandelion", input.mouse())
   end
 end
 ```
 > **NOTE:** `dandelion` is available only if the default particles are installed.
 
 To create a new particle, add an object entry to `dandelion/particles.json`. To create a new emitter, add an object entry to `dandelion/emitters.json`. Learn more about creating particles and emitters [on the wiki.](https://github.com/spad4/dandelion/wiki)
+
+> [!WARNING]
+> The wiki is currently being updated for 2.0.0. Some information is outdated.
 
 ## Examples
 ![](https://github.com/spad4/dandelion/blob/main/assets/fire_flower.gif?raw=true)

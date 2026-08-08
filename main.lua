@@ -188,4 +188,5 @@ function _draw(dt)
         local size = usagi.measure_text(Selected_Particle)
         outlined_text(Selected_Particle, usagi.GAME_W - size - 4, 4, gfx.COLOR_TRUE_WHITE, gfx.COLOR_BLACK)
     end
+
 end
