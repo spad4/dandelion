@@ -31,7 +31,7 @@ end
 
 To create a new particle, add an object entry to `dandelion/particles.json`. To create a new particle emitter, add an object entry to `dandelion/emitters.json`. Learn more about creating particles and emitters [on the wiki.](https://github.com/spad4/dandelion/wiki)
 
-> [!INFO]
+> [!TIP]
 > This repo acts as a playground for creating particles. To use it, clone the repo and run `usagi dev`. See [the playground page](https://github.com/spad4/dandelion/wiki/Playground) for more information.
 
 ## Examples
