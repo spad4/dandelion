@@ -1,4 +1,4 @@
-local VALID_NAME_PATTERN = "^[a-z][a-z0-9_]+$"
+local VALID_NAME_PATTERN = "^[a-zA-Z0-9_.-]+$"
 
 local load_particles = usagi.read_json("dandelion/particles.json")
 local load_emitters = usagi.read_json("dandelion/emitters.json")
@@ -7,14 +7,15 @@ local load_emitters = usagi.read_json("dandelion/emitters.json")
 local particle_metatables = {}
 local emitter_metatables = {}
 
--- runtime cache of particles and emitters
+-- runtime caches of particles and emitters
+-- particles have groups, so particle_caches is a map of group names to group caches
 local particle_caches = {}
 local emitter_cache = {}
 
 local alive_particles = 0
 
--- which indices in the particle cache contain dead particles
--- new particles will pop an index off this table and replace the dead particle in the cache
+-- which indices in each group cache contain dead particles
+-- new particles will pop an index off their group's table and replace the dead particle in the cache
 local open_indices = {}
 
 -- cache of chunks returned by properties so new functions aren't created every time a chunk is read
@@ -23,48 +24,48 @@ local chunk_cache = {}
 -- last time particles were emitted; prevents multiple emissions per frame
 local last_emit = 0
 
-local function compute_particle_expression(particle, expression)
-    if type(expression) ~= "string" then
-        return expression
+local function compute_particle_expression(particle, chunk)
+    if type(chunk) ~= "string" then
+        return chunk
     end
 
     particle.age = usagi.elapsed - particle.born
     local emit = particle.emitter
 
-    if chunk_cache[expression] then
-        return chunk_cache[expression](particle, emit)
+    if chunk_cache[chunk] then
+        return chunk_cache[chunk](particle, emit)
     end
 
     -- this converts an expression into a function that can be called
-    local c, err = load("return function (self, emit) return " .. expression .. " end", "expression", "t")
+    local c, err = load("return function (self, emit) return " .. chunk .. " end", "expression", "t")
     if not c then return nil end
 
     local ok, func = pcall(c)
     if not ok then return nil end
 
-    chunk_cache[expression] = func
+    chunk_cache[chunk] = func
     return func(particle, emit)
 end
 
-local function compute_emitter_expression(emitter, expression)
-    if type(expression) ~= "string" then
-        return expression
+local function compute_emitter_expression(emitter, chunk)
+    if type(chunk) ~= "string" then
+        return chunk
     end
 
     emitter.age = usagi.elapsed - emitter.born
 
-    if chunk_cache[expression] then
-        return chunk_cache[expression](emitter)
+    if chunk_cache[chunk] then
+        return chunk_cache[chunk](emitter)
     end
 
     -- this converts an expression into a function that can be called
-    local c, err = load("return function (self) return " .. expression .. " end", "expression", "t")
+    local c, err = load("return function (self) return " .. chunk .. " end", "expression", "t")
     if not c then return nil end
 
     local ok, func = pcall(c)
     if not ok then return nil end
 
-    chunk_cache[expression] = func
+    chunk_cache[chunk] = func
     return func(emitter)
 end
 
@@ -73,11 +74,10 @@ for _, particle in pairs(load_particles) do
     if not particle.name then
         error("Particle is missing name!")
     end
-    particle.name = string.lower(particle.name)
     if not string.match(particle.name, VALID_NAME_PATTERN) then
         error("Particle name '" ..
             particle.name ..
-            "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
+            "' contains invalid characters. Valid characters are alphanumerics, or _ - .")
     end
     -- NO DUPLICATES!!
     if particle_metatables[particle.name] or emitter_metatables[particle.name] then
@@ -101,11 +101,10 @@ for _, emitter in pairs(load_emitters) do
     if not emitter.name then
         error("Emitter is missing name!")
     end
-    emitter.name = string.lower(emitter.name)
     if not string.match(emitter.name, VALID_NAME_PATTERN) then
         error("Emitter name '" ..
             emitter.name ..
-            "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
+            "' contains invalid characters. Valid characters are alphanumerics, or _ - .")
     end
     -- NO DUPLICATES!!
     if particle_metatables[emitter.name] or emitter_metatables[emitter.name] then
