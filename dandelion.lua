@@ -1,12 +1,11 @@
 local VALID_NAME_PATTERN = "^[a-z][a-z0-9_]+$"
 
-local spawners = {}
-
 local load_particles = usagi.read_json("dandelion/particles.json")
 local load_emitters = usagi.read_json("dandelion/emitters.json")
 
-local particle_names = {}
-local emitter_names = {}
+-- the metatables new particles receive
+local particle_metatables = {}
+local emitter_metatables = {}
 
 -- runtime cache of particles and emitters
 local particle_caches = {}
@@ -81,7 +80,7 @@ for _, particle in pairs(load_particles) do
             "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
     end
     -- NO DUPLICATES!!
-    if spawners[particle.name] then
+    if particle_metatables[particle.name] or emitter_metatables[particle.name] then
         error("Particle '" .. particle.name .. "' is a duplicate and should be renamed")
     end
 
@@ -94,52 +93,7 @@ for _, particle in pairs(load_particles) do
         open_indices[group] = {}
     end
 
-    table.insert(particle_names, particle.name)
-    spawners[particle.name] = function(x, y, vars)
-        -- culling prevents cache sizes from becoming ridiculous
-        if not particle.no_cull and alive_particles > 3000 then return end
-        local new_particle = {
-            x = x,
-            y = y,
-            born = usagi.elapsed
-        }
-
-        setmetatable(new_particle, { __index = particle })
-
-        if vars then
-            for k, v in pairs(vars) do
-                -- these properties are immutable
-                if k ~= "name" and k ~= "x" and k ~= "y" and k ~= "born" then
-                    new_particle[k] = v
-                end
-            end
-        end
-
-        -- these are random values accessible when expressions are computed in particles
-        -- via self.random_1, self.random_2, etc
-        new_particle.random_1 = math.random()
-        new_particle.random_2 = math.random()
-        new_particle.random_3 = math.random()
-        new_particle.random_4 = math.random()
-
-        new_particle.duration = compute_particle_expression(new_particle, new_particle.duration or 1)
-
-        local group_cache = particle_caches[group]
-        local group_indices = open_indices[group]
-        if #group_indices ~= 0 then
-            local open = table.remove(group_indices, #group_indices)
-            if open <= #group_cache and group_cache[open].dead then
-                group_cache[open] = new_particle
-            else
-                table.insert(group_cache, new_particle)
-            end
-            -- end
-        else
-            table.insert(group_cache, new_particle)
-        end
-        alive_particles += 1
-        return new_particle
-    end
+    particle_metatables[particle.name] = particle
 end
 
 -- register emitters
@@ -154,49 +108,108 @@ for _, emitter in pairs(load_emitters) do
             "' contains invalid characters. Valid characters are a-z 0-9 and _, and name must start with a letter")
     end
     -- NO DUPLICATES!!
-    if spawners[emitter.name] then
+    if particle_metatables[emitter.name] or emitter_metatables[emitter.name] then
         error("Error creating emitter: '" .. emitter.name .. "' is a duplicate and should be renamed")
     end
 
-    table.insert(emitter_names, emitter.name)
-    spawners[string.lower(emitter.name)] = function(x, y, vars)
-        local new_emitter = {
-            x = x,
-            y = y,
-            born = usagi.elapsed
-        }
+    emitter_metatables[emitter.name] = emitter
+end
 
-        -- assign all properties from json
-        -- TODO: this can DEFINITELY be a reference to a table
-        for k, v in pairs(emitter) do
-            new_emitter[k] = v
-        end
+local function spawn_particle(name, x, y, vars)
+    local particle = particle_metatables[name]
+    if not particle.no_cull and alive_particles > 3000 then return end
+    local new_particle = {
+        x = x,
+        y = y,
+        born = usagi.elapsed
+    }
 
-        -- a table of the last time each particle was emitted
-        -- used to distribute particle emissions properly
-        new_emitter.last_emit = {}
+    setmetatable(new_particle, { __index = particle })
 
-        -- these are random values accessible when expressions are computed in particles
-        -- in emitters, use self.random_1
-        -- in particles, use emit.random_1, emit.random_2, etc
-        new_emitter.random_1 = math.random()
-        new_emitter.random_2 = math.random()
-        new_emitter.random_3 = math.random()
-        new_emitter.random_4 = math.random()
-
-        new_emitter.duration = compute_emitter_expression(new_emitter, new_emitter.duration or 1)
-
-        if vars then
-            for k, v in pairs(vars) do
-                -- these properties are immutable
-                if k ~= "name" and k ~= "x" and k ~= "y" and k ~= "born" then
-                    new_emitter[k] = v
-                end
+    if vars then
+        for k, v in pairs(vars) do
+            -- these properties are immutable
+            if k ~= "name" and k ~= "x" and k ~= "y" and k ~= "born" then
+                new_particle[k] = v
             end
         end
-        table.insert(emitter_cache, new_emitter)
-        return new_emitter
     end
+
+    -- these are random values accessible when expressions are computed in particles
+    -- via self.random_1, self.random_2, etc
+    new_particle.random_1 = math.random()
+    new_particle.random_2 = math.random()
+    new_particle.random_3 = math.random()
+    new_particle.random_4 = math.random()
+
+    new_particle.duration = compute_particle_expression(new_particle, new_particle.duration or 1)
+
+    local group = particle.group or "none"
+    local group_cache = particle_caches[group]
+    local group_indices = open_indices[group]
+    if #group_indices ~= 0 then
+        local open = table.remove(group_indices, #group_indices)
+        if open <= #group_cache and group_cache[open].dead then
+            group_cache[open] = new_particle
+        else
+            table.insert(group_cache, new_particle)
+        end
+        -- end
+    else
+        table.insert(group_cache, new_particle)
+    end
+    alive_particles += 1
+    return new_particle
+end
+
+local function spawn_emitter(name, x, y, vars)
+    local emitter = emitter_metatables[name]
+    local new_emitter = {
+        x = x,
+        y = y,
+        born = usagi.elapsed
+    }
+
+    -- assign all properties from json
+    -- TODO: this can DEFINITELY be a reference to a table
+    for k, v in pairs(emitter) do
+        new_emitter[k] = v
+    end
+
+    -- a table of the last time each particle was emitted
+    -- used to distribute particle emissions properly
+    new_emitter.last_emit = {}
+
+    -- these are random values accessible when expressions are computed in particles
+    -- in emitters, use self.random_1
+    -- in particles, use emit.random_1, emit.random_2, etc
+    new_emitter.random_1 = math.random()
+    new_emitter.random_2 = math.random()
+    new_emitter.random_3 = math.random()
+    new_emitter.random_4 = math.random()
+
+    new_emitter.duration = compute_emitter_expression(new_emitter, new_emitter.duration or 1)
+
+    if vars then
+        for k, v in pairs(vars) do
+            -- these properties are immutable
+            if k ~= "name" and k ~= "x" and k ~= "y" and k ~= "born" then
+                new_emitter[k] = v
+            end
+        end
+    end
+    table.insert(emitter_cache, new_emitter)
+    return new_emitter
+end
+
+local function spawn(name, x, y, vars, context)
+    if particle_metatables[name] then
+        return spawn_particle(name, x, y, vars)
+    elseif emitter_metatables[name] then
+        return spawn_emitter(name, x, y, vars)
+    end
+
+    error(context .. " tried to spawn particle/emitter '" .. name .. "' which does not exist")
 end
 
 local function outlined_text(text, x, y, color, outline)
@@ -519,10 +532,6 @@ local function emit_particles(emitter)
         if particle.name == emitter.name then
             error("A shape from emitter '" .. emitter.name .. "' is looping")
         end
-        if not spawners[particle.name] then
-            error("A shape from emitter '" ..
-                emitter.name .. "' is trying to emit '" .. particle.name .. "' which does not exist")
-        end
 
         if particle.delay then
             -- delay > 0 means the particle will wait that long before emitting
@@ -551,7 +560,9 @@ local function emit_particles(emitter)
                 if mx then vars.mx = mx end
                 if my then vars.my = my end
                 vars.emitter = emitter
-                spawners[string.lower(particle.name)](emitter.x + dx + sx, emitter.y + dy + sy, vars)
+
+                -- spawn particle
+                spawn(particle.name, emitter.x + dx + sx, emitter.y + dy + sy, vars, "Emitter '" .. emitter.name .. "'")
             end
         end
         ::continue::
@@ -599,20 +610,23 @@ local function draw_particle_group(group, ignored)
             if remove_budget > 0 then
                 if not particle.dead then
                     alive_particles = alive_particles - 1
-                    if particle.create_on_death and spawners[particle.create_on_death] then
-                        spawners[particle.create_on_death](particle.prev_x, particle.prev_y, particle.vars)
+                    if particle.create_on_death then
+                        spawn(particle.create_on_death, particle.prev_x, particle.prev_y, particle.vars,
+                            "Particle '" .. particle.name .. "' create_on_death")
                     end
                 end
                 table.remove(group_cache, i)
                 remove_budget -= 1
-            else if not particle.dead then
+            else
+                if not particle.dead then
                     particle.dead = true
                     alive_particles = math.max(0, alive_particles - 1)
                     -- next time a particle spawns, it will try to replace this one in the table
                     -- instead of expanding the cache
                     table.insert(open_indices[group], i)
-                    if particle.create_on_death and spawners[particle.create_on_death] then
-                        spawners[particle.create_on_death](particle.prev_x, particle.prev_y, particle.vars)
+                    if particle.create_on_death then
+                        spawn(particle.create_on_death, particle.prev_x, particle.prev_y, particle.vars,
+                            "Particle '" .. particle.name .. "' create_on_death")
                     end
                 end
             end
@@ -645,7 +659,8 @@ function dandelion.Spawn(name, x, y, vars)
     if not name or not x or not y then
         error("dandelion.Spawn is missing name, x, or y")
     end
-    return spawners[name](x, y, vars)
+
+    return spawn(name, x, y, vars, "dandelion.Spawn")
 end
 
 ---Immediately removes the passed particle or emitter.
@@ -685,8 +700,8 @@ end
 ---@return table
 function dandelion.Particles()
     local to_return = {}
-    for _, v in pairs(particle_names) do
-        table.insert(to_return, v)
+    for k, _ in pairs(particle_metatables) do
+        table.insert(to_return, k)
     end
     return to_return
 end
@@ -695,8 +710,8 @@ end
 ---@return table
 function dandelion.Emitters()
     local to_return = {}
-    for _, v in pairs(emitter_names) do
-        table.insert(to_return, v)
+    for k, v in pairs(emitter_metatables) do
+        table.insert(to_return, k)
     end
     return to_return
 end
