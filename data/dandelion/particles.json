@@ -30,7 +30,7 @@
         ]
     },
     {
-        "name": "laser_-.circle",
+        "name": "laser_circle",
         "duration": 0.6,
         "shapes": [
             {
@@ -156,10 +156,11 @@
         "shapes": [
             {
                 "type": "text",
-                "text": "math.floor(self.random_4 * 9 + 1)",
+                "text": "math.floor(self.random_4 * 99 + 1)",
                 "align": "center",
-                "scale": "self.age < 0.25 and 1 or (1 - (self.age - 0.25) / (self.duration - 0.25))",
+                "scale": "2 * (self.age < 0.25 and 1 or (1 - (self.age - 0.25) / (self.duration - 0.25)))",
                 "color": "gfx.COLOR_RED",
+                "rotation": "self.age * (self.random_4 * 0.25 + 0.1) * (self.random_2 > 0.5 and 1 or -1)",
                 "outline": "gfx.COLOR_DARK_PURPLE"
             }
         ]
@@ -174,7 +175,7 @@
                 "text": "'+'..math.floor(self.random_4 * 39 + 10)..'XP'",
                 "align": "center",
                 "color": "(self.age % 0.15) > 0.075 and gfx.COLOR_YELLOW or gfx.COLOR_WHITE",
-                "outline": "(self.age % 0.15) > 0.075 and gfx.COLOR_BROWN or gfx.COLOR_DARK_GRAY"
+                "outline": "(self.age % 0.15) > 0.075 and gfx.COLOR_BROWN or gfx.COLOR_DARK_PURPLE"
             }
         ]
     },

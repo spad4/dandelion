@@ -1,7 +1,42 @@
-local VALID_NAME_PATTERN = "^[a-zA-Z0-9_.-]+$"
+--[[ ###########
+      CONSTANTS
+     ########### ]]
 
-local load_particles = usagi.read_json("dandelion/particles.json")
-local load_emitters = usagi.read_json("dandelion/emitters.json")
+local VALID_NAME_PATTERN = "^[a-zA-Z0-9_.-]+$"
+local IMMUTABLE_PROPERTIES = {
+    name = true,
+    x = true,
+    y = true,
+    born = true
+}
+local LOAD_PARTICLES = usagi.read_json("dandelion/particles.json")
+local LOAD_EMITTERS = usagi.read_json("dandelion/emitters.json")
+
+local THIRD_OF_PI = math.pi / 3
+local HALF_OF_PI = math.pi * 0.5
+local FIVE_THIRDS_OF_PI = math.pi * 5 / 3
+
+local DEFAULT = {
+    PARTICLE_GROUP = "none",
+    COLOR = gfx.COLOR_TRUE_WHITE,
+    ALPHA = 1,
+    TEXT = "'.'",
+    TEXT_SCALE = 1,
+    CIRCLE_RADIUS = 16,
+    CIRCLE_OUTLINE = 1,
+    TRIANGLE_SIZE = 16,
+    LINE_LENGTH = 16,
+    LINE_THICKNESS = 1,
+    RECTANGLE_SIZE = 16,
+    RECT_EMIT_SIZE = 16,
+    CIRC_EMIT_RADIUS = 16,
+    LINE_EMIT_LENGTH = 16,
+    EMITTER_DISTRIBUTION = "random"
+}
+
+--[[ ################
+      RUNTIME CACHES
+     ################ ]]
 
 -- the metatables new particles receive
 local particle_metatables = {}
@@ -24,53 +59,12 @@ local chunk_cache = {}
 -- last time particles were emitted; prevents multiple emissions per frame
 local last_emit = 0
 
-local function compute_particle_expression(particle, chunk)
-    if type(chunk) ~= "string" then
-        return chunk
-    end
-
-    particle.age = usagi.elapsed - particle.born
-    local emit = particle.emitter
-
-    if chunk_cache[chunk] then
-        return chunk_cache[chunk](particle, emit)
-    end
-
-    -- this converts an expression into a function that can be called
-    local c, err = load("return function (self, emit) return " .. chunk .. " end", "expression", "t")
-    if not c then return nil end
-
-    local ok, func = pcall(c)
-    if not ok then return nil end
-
-    chunk_cache[chunk] = func
-    return func(particle, emit)
-end
-
-local function compute_emitter_expression(emitter, chunk)
-    if type(chunk) ~= "string" then
-        return chunk
-    end
-
-    emitter.age = usagi.elapsed - emitter.born
-
-    if chunk_cache[chunk] then
-        return chunk_cache[chunk](emitter)
-    end
-
-    -- this converts an expression into a function that can be called
-    local c, err = load("return function (self) return " .. chunk .. " end", "expression", "t")
-    if not c then return nil end
-
-    local ok, func = pcall(c)
-    if not ok then return nil end
-
-    chunk_cache[chunk] = func
-    return func(emitter)
-end
+--[[ #######
+      SETUP
+     ####### ]]
 
 -- register all particle types and constructor functions
-for _, particle in pairs(load_particles) do
+for _, particle in pairs(LOAD_PARTICLES) do
     if not particle.name then
         error("Particle is missing name!")
     end
@@ -97,7 +91,7 @@ for _, particle in pairs(load_particles) do
 end
 
 -- register emitters
-for _, emitter in pairs(load_emitters) do
+for _, emitter in pairs(LOAD_EMITTERS) do
     if not emitter.name then
         error("Emitter is missing name!")
     end
@@ -114,6 +108,36 @@ for _, emitter in pairs(load_emitters) do
     emitter_metatables[emitter.name] = emitter
 end
 
+--[[ ####################
+      INTERNAL FUNCTIONS
+     #################### ]]
+
+-- converts a string into a chunk that can be called to compute values
+local function eval_chunk(object, chunk)
+    if type(chunk) ~= "string" then
+        return chunk
+    end
+
+    object.age = usagi.elapsed - object.born
+
+    -- object.emitter is not populated for emitters, 
+    -- but it doesn't really matter since it will be nil either way
+    -- functionally the same as not passing it at all
+    if chunk_cache[chunk] then
+        return chunk_cache[chunk](object, object.emitter)
+    end
+
+    -- this converts an expression into a function that can be called
+    local c, err = load("return function (self, emit) return " .. chunk .. " end", "expression", "t")
+    if not c then return nil end
+
+    local ok, func = pcall(c)
+    if not ok then return nil end
+
+    chunk_cache[chunk] = func
+    return func(object, object.emitter)
+end
+
 local function spawn_particle(name, x, y, vars)
     local particle = particle_metatables[name]
     if not particle.no_cull and alive_particles > 3000 then return end
@@ -127,8 +151,7 @@ local function spawn_particle(name, x, y, vars)
 
     if vars then
         for k, v in pairs(vars) do
-            -- these properties are immutable
-            if k ~= "name" and k ~= "x" and k ~= "y" and k ~= "born" then
+            if not IMMUTABLE_PROPERTIES[k] then
                 new_particle[k] = v
             end
         end
@@ -141,7 +164,7 @@ local function spawn_particle(name, x, y, vars)
     new_particle.random_3 = math.random()
     new_particle.random_4 = math.random()
 
-    new_particle.duration = compute_particle_expression(new_particle, new_particle.duration or 1)
+    new_particle.duration = eval_chunk(new_particle, new_particle.duration or 1)
 
     local group = particle.group or "none"
     local group_cache = particle_caches[group]
@@ -153,7 +176,6 @@ local function spawn_particle(name, x, y, vars)
         else
             table.insert(group_cache, new_particle)
         end
-        -- end
     else
         table.insert(group_cache, new_particle)
     end
@@ -187,12 +209,11 @@ local function spawn_emitter(name, x, y, vars)
     new_emitter.random_3 = math.random()
     new_emitter.random_4 = math.random()
 
-    new_emitter.duration = compute_emitter_expression(new_emitter, new_emitter.duration or 1)
+    new_emitter.duration = eval_chunk(new_emitter, new_emitter.duration or 1)
 
     if vars then
         for k, v in pairs(vars) do
-            -- these properties are immutable
-            if k ~= "name" and k ~= "x" and k ~= "y" and k ~= "born" then
+            if not IMMUTABLE_PROPERTIES[k] then
                 new_emitter[k] = v
             end
         end
@@ -226,40 +247,40 @@ local function draw_particle(particle)
     -- get dx
     local center_x = particle.x
     local center_y = particle.y
-    center_x += compute_particle_expression(particle, particle.dx or 0)
-    center_y += compute_particle_expression(particle, particle.dy or 0)
+    center_x += eval_chunk(particle, particle.dx or 0)
+    center_y += eval_chunk(particle, particle.dy or 0)
 
     -- mx and my come from emitters: circle & line can push particles in certain
     -- directions depending on the parameters provided to the emitter
-    center_x += compute_particle_expression(particle, particle.mx or 0)
-    center_y += compute_particle_expression(particle, particle.my or 0)
+    center_x += eval_chunk(particle, particle.mx or 0)
+    center_y += eval_chunk(particle, particle.my or 0)
 
     -- these are used for when the particle dies and needs to spawn a new particle
     particle.prev_x, particle.prev_y = center_x, center_y
 
-    local particle_rotation = compute_particle_expression(particle, particle.rotation or 0) * math.pi
+    local particle_rotation = eval_chunk(particle, particle.rotation or 0) * math.pi
     local propagated_rotation = particle.rotate_shapes and particle_rotation or 0
 
     for _, shape in pairs(particle.shapes) do
         -- base shape offset
-        local offset_x = compute_particle_expression(particle, shape.dx or 0)
-        local offset_y = compute_particle_expression(particle, shape.dy or 0)
+        local offset_x = eval_chunk(particle, shape.dx or 0)
+        local offset_y = eval_chunk(particle, shape.dy or 0)
         -- rotate offset based on particle rotation, and add to the center of the particle
         local final_x = center_x + offset_x * math.cos(particle_rotation) - offset_y * math.sin(particle_rotation)
         local final_y = center_y + offset_x * math.sin(particle_rotation) + offset_y * math.cos(particle_rotation)
 
         -- other properties shared by all shapes
-        local color = compute_particle_expression(particle, shape.color or gfx.COLOR_TRUE_WHITE)
-        local alpha = compute_particle_expression(particle, shape.alpha or 1)
+        local color = eval_chunk(particle, shape.color or gfx.COLOR_TRUE_WHITE)
+        local alpha = eval_chunk(particle, shape.alpha or 1)
 
         if shape.type == "pixel" then
             gfx.px(final_x, final_y, color, alpha)
         elseif shape.type == "text" then
-            local shadow = compute_particle_expression(particle, shape.shadow)
-            local outline = compute_particle_expression(particle, shape.outline)
-            local text = tostring(compute_particle_expression(particle, shape.text or "'.'"))
-            local scale = compute_particle_expression(particle, shape.scale or 1)
-            local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation
+            local shadow = eval_chunk(particle, shape.shadow)
+            local outline = eval_chunk(particle, shape.outline)
+            local text = tostring(eval_chunk(particle, shape.text or DEFAULT.TEXT))
+            local scale = eval_chunk(particle, shape.scale or DEFAULT.TEXT_SCALE)
+            local rotation = eval_chunk(particle, shape.rotation or 0) * math.pi + propagated_rotation
 
             local alignment = 0
             if shape.align == "center" then
@@ -279,34 +300,32 @@ local function draw_particle(particle)
                 gfx.text_ex("" .. text, final_x + scale - alignment, final_y + scale, scale, rotation, shadow, alpha)
             end
 
-
             gfx.text_ex("" .. text, final_x - alignment, final_y, scale, rotation, color, alpha)
         elseif shape.type == "circle" then
-            local radius = compute_particle_expression(particle, shape.radius or 4)
+            local radius = eval_chunk(particle, shape.radius or DEFAULT.CIRCLE_RADIUS)
 
             if shape.outline then
-                local outline = compute_particle_expression(particle, shape.outline or 1)
+                local outline = eval_chunk(particle, shape.outline or DEFAULT.CIRCLE_OUTLINE)
                 gfx.circ_ex(final_x, final_y, radius + outline / 2, outline, color, alpha)
             else
                 gfx.circ_fill(final_x, final_y, radius, color, alpha)
             end
         elseif shape.type == "triangle" then
-            local size = compute_particle_expression(particle, shape.size or 1)
-            local rotation = -(compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation)
+            local size = eval_chunk(particle, shape.size or DEFAULT.TRIANGLE_SIZE)
+            local rotation = -(eval_chunk(particle, shape.rotation or 0) * math.pi + propagated_rotation)
 
             local x = final_x
             local y = final_y
 
-            -- could optimize this by precomputing these values
             local x1, y1 =
-                x + math.sin(rotation + math.pi / 3) * size,
-                y + math.cos(rotation + math.pi / 3) * size
+                x + math.sin(rotation + THIRD_OF_PI) * size,
+                y + math.cos(rotation + THIRD_OF_PI) * size
             local x2, y2 =
                 x + math.sin(rotation + math.pi) * size,
                 y + math.cos(rotation + math.pi) * size
             local x3, y3 =
-                x + math.sin(rotation + math.pi * 5 / 3) * size,
-                y + math.cos(rotation + math.pi * 5 / 3) * size
+                x + math.sin(rotation + FIVE_THIRDS_OF_PI) * size,
+                y + math.cos(rotation + FIVE_THIRDS_OF_PI) * size
 
             if shape.hollow then
                 gfx.tri(x1, y1, x2, y2, x3, y3, color, alpha)
@@ -314,9 +333,9 @@ local function draw_particle(particle)
                 gfx.tri_fill(x1, y1, x2, y2, x3, y3, color, alpha)
             end
         elseif shape.type == "line" then
-            local length = compute_particle_expression(particle, shape.length or 16)
-            local thickness = compute_particle_expression(particle, shape.thickness or 1)
-            local rotation = compute_particle_expression(particle, shape.rotation or 0) * math.pi + propagated_rotation
+            local length = eval_chunk(particle, shape.length or DEFAULT.LINE_LENGTH)
+            local thickness = eval_chunk(particle, shape.thickness or DEFAULT.LINE_THICKNESS)
+            local rotation = eval_chunk(particle, shape.rotation or 0) * math.pi + propagated_rotation
 
             local x1, y1 = final_x, final_y
             local v = util.vec_from_angle(rotation, length)
@@ -328,13 +347,12 @@ local function draw_particle(particle)
 
             gfx.line_ex(x1, y1, x1 + px, y1 + py, thickness, color, alpha)
         elseif shape.type == "rectangle" then
-            local width = compute_particle_expression(particle, shape.width or 16)
-            local height = compute_particle_expression(particle, shape.height or 16)
+            local width = eval_chunk(particle, shape.width or DEFAULT.RECTANGLE_SIZE)
+            local height = eval_chunk(particle, shape.height or DEFAULT.RECTANGLE_SIZE)
             local half_width = width / 2
             local half_height = height / 2
-            local rotation = compute_particle_expression(particle, shape.rotation or 0.25) * math.pi +
-                propagated_rotation
-            local outline = compute_particle_expression(particle, shape.outline or 1)
+            local rotation = eval_chunk(particle, shape.rotation or 0.25) * math.pi + propagated_rotation
+            local outline = eval_chunk(particle, shape.outline or 1)
 
             local function rotated_corner(x, y)
                 local tx = x * math.cos(rotation) - y * math.sin(rotation)
@@ -371,10 +389,10 @@ end
 -- produces a random position within or on the edge of a rectangle of some width and height
 local function rectangle_emitter(emitter, config, i, max)
     local percent = i / max
-    local width = compute_emitter_expression(emitter, config.width or 16)
-    local height = compute_emitter_expression(emitter, config.height or 16)
+    local width = eval_chunk(emitter, config.width or DEFAULT.RECT_EMIT_SIZE)
+    local height = eval_chunk(emitter, config.height or DEFAULT.RECT_EMIT_SIZE)
     local a = math.floor(percent * width * height)
-    local distribution = config.distribution or "random"
+    local distribution = config.distribution or DEFAULT.EMITTER_DISTRIBUTION
 
     local x = 0
     local y = 0
@@ -434,11 +452,11 @@ end
 -- produces a random position within or on the edge of a circle of some radius
 local function circle_emitter(emitter, config, i, max)
     local percent = i / max
-    local radius = compute_emitter_expression(emitter, config.radius or 16)
+    local radius = eval_chunk(emitter, config.radius or DEFAULT.CIRC_EMIT_RADIUS)
     local distribution = config.distribution or "random"
-    local rotation = compute_emitter_expression(emitter, config.rotation or 0)
-    local motion = compute_emitter_expression(emitter, config.motion or 0)
-    local direction = compute_emitter_expression(emitter, config.direction or 0) + 0.5
+    local rotation = eval_chunk(emitter, config.rotation or 0)
+    local motion = eval_chunk(emitter, config.motion or 0)
+    local direction = eval_chunk(emitter, config.direction or 0) + 0.5
 
     local a = math.random
     -- this causes a spiral to form if outline is not also true
@@ -468,12 +486,12 @@ end
 -- produces a random position on one of two lines of some length separated by some thickness with some rotation
 local function line_emitter(emitter, config, i, max)
     local percent = i / max
-    local length = compute_emitter_expression(emitter, config.length or 16)
-    local thickness = compute_emitter_expression(emitter, config.thickness or 0)
-    local rotation = compute_emitter_expression(emitter, config.rotation or 0)
-    local motion = compute_emitter_expression(emitter, config.motion or 0)
-    local direction = compute_emitter_expression(emitter, config.direction or 0) + 0.5
-    local distribution = config.distribution or "random"
+    local length = eval_chunk(emitter, config.length or DEFAULT.LINE_EMIT_LENGTH)
+    local thickness = eval_chunk(emitter, config.thickness or 0)
+    local rotation = eval_chunk(emitter, config.rotation or 0)
+    local motion = eval_chunk(emitter, config.motion or 0)
+    local direction = eval_chunk(emitter, config.direction or 0) + 0.5
+    local distribution = config.distribution or DEFAULT.EMITTER_DISTRIBUTION
 
     local a = math.random
     local side = 1
@@ -486,11 +504,9 @@ local function line_emitter(emitter, config, i, max)
 
     local x = math.cos(math.pi * rotation) * length
     local y = math.sin(math.pi * rotation) * length
-    local x_offset = math.cos((0.5 * math.pi) + rotation * math.pi) * thickness * side * 0.5
-    local y_offset = math.sin((0.5 * math.pi) + rotation * math.pi) * thickness * side * 0.5
+    local y_offset = math.sin(HALF_OF_PI + rotation * math.pi) * thickness * side * 0.5
+    local x_offset = math.cos(HALF_OF_PI + rotation * math.pi) * thickness * side * 0.5
 
-    -- local x_motion = math.cos((0.5 * math.pi) + rotation * math.pi) * thickness * side * 0.5
-    -- local y_motion = math.sin((0.5 * math.pi) + rotation * math.pi) * thickness * side * 0.5
     local x_velocity = nil
     local y_velocity = nil
     local rand = a()
@@ -521,8 +537,8 @@ local function emit_particles(emitter)
     if not particles then return end
 
     local age = usagi.elapsed - emitter.born
-    local dx = compute_emitter_expression(emitter, emitter.dx or 0)
-    local dy = compute_emitter_expression(emitter, emitter.dy or 0)
+    local dx = eval_chunk(emitter, emitter.dx or 0)
+    local dy = eval_chunk(emitter, emitter.dy or 0)
 
     for i, particle in pairs(emitter.particles) do
         if not particle.name then
@@ -611,7 +627,7 @@ local function draw_particle_group(group, ignored)
             alive_particles = math.max(0, alive_particles - 1)
             if particle.create_on_death then
                 spawn(particle.create_on_death, particle.prev_x, particle.prev_y, particle.vars,
-                "Particle '" .. particle.name .. "' create_on_death")
+                    "Particle '" .. particle.name .. "' create_on_death")
             end
             -- if no more particles will be removed this frame,
             -- this index can be overwritten instead of removed
