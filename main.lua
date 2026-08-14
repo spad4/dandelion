@@ -35,8 +35,15 @@ local function get_pressed_char()
             return string.char(i)
         end
     end
-    if (input.key_held(input.KEY_LSHIFT) or input.key_held(input.KEY_RSHIFT)) and input.key_pressed(input.KEY_MINUS) then
-        return "_"
+    if input.key_pressed(input.KEY_PERIOD) then
+        return "."
+    end
+    if input.key_pressed(input.KEY_MINUS) then
+        if input.key_held(input.KEY_LSHIFT) or input.key_held(input.KEY_RSHIFT) then 
+            return "_"
+        else
+            return "-"
+        end
     end
     return nil
 end

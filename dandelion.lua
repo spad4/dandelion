@@ -2,7 +2,7 @@
       CONSTANTS
      ########### ]]
 
-local VALID_NAME_PATTERN = "^[a-zA-Z0-9_.-]+$"
+local VALID_NAME_PATTERN = "^[a-z0-9_.-]+$"
 local IMMUTABLE_PROPERTIES = {
     name = true,
     x = true,

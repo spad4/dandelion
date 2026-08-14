@@ -29,10 +29,10 @@ end
 ```
 > **NOTE:** `dandelion` is available only if the default particles are installed.
 
-To create a new particle, add an object entry to `dandelion/particles.json`. To create a new emitter, add an object entry to `dandelion/emitters.json`. Learn more about creating particles and emitters [on the wiki.](https://github.com/spad4/dandelion/wiki)
+To create a new particle, add an object entry to `dandelion/particles.json`. To create a new particle emitter, add an object entry to `dandelion/emitters.json`. Learn more about creating particles and emitters [on the wiki.](https://github.com/spad4/dandelion/wiki)
 
-> [!WARNING]
-> The wiki is currently being updated for 2.0.0. Some information is outdated.
+> [!INFO]
+> This repo acts as a playground for creating particles. To use it, clone the repo and run `usagi dev`. See [the playground page](https://github.com/spad4/dandelion/wiki/Playground) for more information.
 
 ## Examples
 ![](https://github.com/spad4/dandelion/blob/main/assets/readme_examples/fire_flower.gif?raw=true)
