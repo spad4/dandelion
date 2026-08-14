@@ -606,29 +606,25 @@ local function draw_particle_group(group, ignored)
             culling helps even more because then the size of the cache will never exceed an amount that
             would cause table.remove to majorly impact performance
         ]] --
-        if particle.dead or particle.killed or usagi.elapsed - particle.born > particle.duration then
+
+        if not particle.dead and (particle.killed or usagi.elapsed - particle.born > particle.duration) then
+            particle.dead = true
+            alive_particles = math.max(0, alive_particles - 1)
+            if particle.create_on_death then
+                spawn(particle.create_on_death, particle.prev_x, particle.prev_y, particle.vars,
+                "Particle '" .. particle.name .. "' create_on_death")
+            end
+            -- if no more particles will be removed this frame,
+            -- this index can be overwritten instead of removed
+            if remove_budget <= 0 then
+                table.insert(open_indices[group], i)
+            end
+        end
+
+        if particle.dead then
             if remove_budget > 0 then
-                if not particle.dead then
-                    alive_particles = alive_particles - 1
-                    if particle.create_on_death then
-                        spawn(particle.create_on_death, particle.prev_x, particle.prev_y, particle.vars,
-                            "Particle '" .. particle.name .. "' create_on_death")
-                    end
-                end
                 table.remove(group_cache, i)
                 remove_budget -= 1
-            else
-                if not particle.dead then
-                    particle.dead = true
-                    alive_particles = math.max(0, alive_particles - 1)
-                    -- next time a particle spawns, it will try to replace this one in the table
-                    -- instead of expanding the cache
-                    table.insert(open_indices[group], i)
-                    if particle.create_on_death then
-                        spawn(particle.create_on_death, particle.prev_x, particle.prev_y, particle.vars,
-                            "Particle '" .. particle.name .. "' create_on_death")
-                    end
-                end
             end
         elseif not ignored then
             draw_particle(particle)
