@@ -214,5 +214,85 @@
                 "centered": true
             }
         ]
+    },
+    {
+        "name": "daisy",
+        "dx": "math.log(15 * self.age + 1) * (self.random_1 * 5 + 5) * util.sign(self.random_3 - 0.5)",
+        "dy": "math.log(15 * self.age + 1) * (self.random_2 * 5 + 5) * util.sign(self.random_4 - 0.5)",
+        "rotation": "self.age * (self.random_1 * 0.25 + 0.25) * util.sign(self.random_4 - 0.5)",
+        "shapes": [
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_LIGHT_GRAY",
+                "radius": 2,
+                "dx": 4,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_LIGHT_GRAY",
+                "radius": 2,
+                "dy": -4,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_LIGHT_GRAY",
+                "radius": 2,
+                "dx": -4,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_LIGHT_GRAY",
+                "radius": 2,
+                "dy": 4,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_WHITE",
+                "radius": 2,
+                "dx": 3,
+                "dy": 3,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_WHITE",
+                "radius": 2,
+                "dx": 3,
+                "dy": -3,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_WHITE",
+                "radius": 2,
+                "dx": -3,
+                "dy": 3,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_WHITE",
+                "radius": 2,
+                "dx": -3,
+                "dy": -3,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_ORANGE",
+                "radius": 3,
+                "alpha": "1 - self.age / self.duration"
+            },
+            {
+                "type": "circle",
+                "color": "gfx.COLOR_YELLOW",
+                "radius": 3,
+                "alpha": "0.5 * (1 - self.age / self.duration)"
+            }
+        ]
     }
 ]
