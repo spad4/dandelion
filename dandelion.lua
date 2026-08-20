@@ -16,6 +16,8 @@ local THIRD_OF_PI = math.pi / 3
 local HALF_OF_PI = math.pi * 0.5
 local FIVE_THIRDS_OF_PI = math.pi * 5 / 3
 
+local total_spawned = 0
+
 local DEFAULT = {
     PARTICLE_GROUP = "none",
     COLOR = gfx.COLOR_TRUE_WHITE,
@@ -180,6 +182,7 @@ local function spawn_particle(name, x, y, vars)
         table.insert(group_cache, new_particle)
     end
     alive_particles += 1
+    total_spawned += 1
     return new_particle
 end
 
