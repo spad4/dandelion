@@ -47,7 +47,6 @@ local function get_pressed_char()
 end
 
 local next_backspace = 1
-
 local last_spawned = nil
 
 function _update(dt)
