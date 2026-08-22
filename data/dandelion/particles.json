@@ -181,12 +181,42 @@
     },
     {
         "name": "dandelion",
-        "duration": 10,
+        "duration": 5,
         "rotation": "math.sin(self.age*2)*0.2",
         "rotate_shapes": true,
         "dx": "self.age * (self.random_1 * 32 + 96)",
         "dy": "math.sin(self.age/(self.random_2 + 1))*16",
         "shapes": [
+            {
+                "type": "line",
+                "color": "gfx.COLOR_BLACK",
+                "length": 9,
+                "thickness": 3,
+                "rotation": "self.random_3 * 0.5 - 0.25",
+                "centered": true
+            },
+            {
+                "type": "line",
+                "color": "gfx.COLOR_BLACK",
+                "rotation": "self.random_4 * 0.5 - 0.25",
+                "length": 9,
+                "thickness": 3,
+                "centered": true
+            },
+            {
+                "type": "line",
+                "color": "gfx.COLOR_BLACK",
+                "length": 9,
+                "thickness": 3,
+                "centered": true
+            },
+            {
+                "type": "line",
+                "color": "gfx.COLOR_BLACK",
+                "rotation": 0.5,
+                "length": 5,
+                "thickness": 3
+            },
             {
                 "type": "line",
                 "color": "gfx.COLOR_DARK_GREEN",
@@ -195,21 +225,21 @@
             },
             {
                 "type": "line",
-                "color": "gfx.COLOR_WHITE",
+                "color": "self.random_2 > 0.5 and gfx.COLOR_YELLOW or gfx.COLOR_WHITE",
                 "length": 7,
                 "rotation": "self.random_3 * 0.5 - 0.25",
                 "centered": true
             },
             {
                 "type": "line",
-                "color": "gfx.COLOR_WHITE",
+                "color": "self.random_2 > 0.5 and gfx.COLOR_YELLOW or gfx.COLOR_WHITE",
                 "rotation": "self.random_4 * 0.5 - 0.25",
                 "length": 7,
                 "centered": true
             },
             {
                 "type": "line",
-                "color": "gfx.COLOR_WHITE",
+                "color": "self.random_2 > 0.5 and gfx.COLOR_YELLOW or gfx.COLOR_WHITE",
                 "length": 7,
                 "centered": true
             }

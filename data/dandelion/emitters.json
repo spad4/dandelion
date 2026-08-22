@@ -114,6 +114,7 @@
     {
         "name": "dandelion_emitter",
         "duration": 3,
+        "dx": -16,
         "particles": [
             {
                 "name": "dandelion",
